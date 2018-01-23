@@ -9,8 +9,8 @@ Repository of laboratory materials for the January-2018 NOAA Alaska Fisheries Sc
 
 Name                                | Description
 ------------------------------------|---------------------------------------
-[GOA_Bottom-Trawl_Single-Species]() | Example script for running single species spatio-temporal delta-GAMM for Gulf of Alaska Race bottom trawl survey data.
-[GOA_Bottom-Trawl_Single-Species_Catchability-Covar]() |  Example script for running single species spatio-temporal delta-GAMM for Gulf of Alaska Race bottom trawl survey data, with catchability covariates at the haul level.
+[GOA_Bottom-Trawl_Single-Species](https://github.com/curryc2/AFSC_Spatio-temporal_Workshop/tree/master/GOA_Bottom-Trawl_Single-Species) | Example script for running single species spatio-temporal delta-GAMM for Gulf of Alaska Race bottom trawl survey data.
+[GOA_Bottom-Trawl_Single-Species_Catchability-Covar](https://github.com/curryc2/AFSC_Spatio-temporal_Workshop/tree/master/GOA_Bottom-Trawl_Single-Species_Catchability-Covar) |  Example script for running single species spatio-temporal delta-GAMM for Gulf of Alaska Race bottom trawl survey data, with catchability covariates at the haul level.
 
 ***
 
