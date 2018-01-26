@@ -1,0 +1,183 @@
+$par
+  ln_H_input   ln_H_input     beta1_ct 
+    3.01e-01     3.49e-01    -3.24e+00 
+    beta1_ct     beta1_ct     beta1_ct 
+   -2.37e+00    -2.69e+00    -2.68e+00 
+    beta1_ct     beta1_ct     beta1_ct 
+   -2.84e+00    -3.02e+00    -2.94e+00 
+    beta1_ct     beta1_ct     beta1_ct 
+   -3.12e+00    -2.93e+00    -3.11e+00 
+    beta1_ct     beta1_ct     beta1_ct 
+   -3.18e+00    -3.40e+00    -3.24e+00 
+    beta1_ct     beta1_ct   L_omega1_z 
+   -3.51e+00    -3.01e+00    -2.13e+00 
+L_epsilon1_z    logkappa1     beta2_ct 
+   -4.59e-01    -4.80e+00     5.76e+00 
+    beta2_ct     beta2_ct     beta2_ct 
+    6.00e+00     6.27e+00     6.19e+00 
+    beta2_ct     beta2_ct     beta2_ct 
+    6.86e+00     6.41e+00     6.82e+00 
+    beta2_ct     beta2_ct     beta2_ct 
+    6.29e+00     6.99e+00     6.91e+00 
+    beta2_ct     beta2_ct     beta2_ct 
+    6.32e+00     6.78e+00     7.15e+00 
+    beta2_ct     beta2_ct   L_omega2_z 
+    6.60e+00     6.86e+00    -1.57e+00 
+L_epsilon2_z    logkappa2    logSigmaM 
+   -1.32e-07    -4.82e+00     7.44e-01 
+
+$objective
+[1] 11317
+
+$convergence
+[1] 0
+
+$iterations
+[1] 4
+
+$evaluations
+function gradient 
+       9        5 
+
+$message
+[1] "relative convergence (4)"
+
+$run_time
+Time difference of 42.2 secs
+
+$max_gradient
+[1] 0.00294
+
+$number_of_coefficients
+ Total  Fixed Random 
+  8159     39   8120 
+
+$AIC
+[1] 22711
+
+$diagnostics
+          Param starting_value  Lower       MLE
+1    ln_H_input          0.000 -50.00  3.01e-01
+2    ln_H_input          0.000 -50.00  3.49e-01
+3      beta1_ct         -6.373 -50.00 -3.24e+00
+4      beta1_ct         -6.373 -50.00 -2.37e+00
+5      beta1_ct         -6.373 -50.00 -2.69e+00
+6      beta1_ct         -6.373 -50.00 -2.68e+00
+7      beta1_ct         -6.373 -50.00 -2.84e+00
+8      beta1_ct         -6.373 -50.00 -3.02e+00
+9      beta1_ct         -6.373 -50.00 -2.94e+00
+10     beta1_ct         -6.373 -50.00 -3.12e+00
+11     beta1_ct         -6.373 -50.00 -2.93e+00
+12     beta1_ct         -6.373 -50.00 -3.11e+00
+13     beta1_ct         -6.373 -50.00 -3.18e+00
+14     beta1_ct         -6.373 -50.00 -3.40e+00
+15     beta1_ct         -6.373 -50.00 -3.24e+00
+16     beta1_ct         -6.373 -50.00 -3.51e+00
+17     beta1_ct         -6.373 -50.00 -3.01e+00
+18   L_omega1_z         -1.062 -50.00 -2.13e+00
+19 L_epsilon1_z         -1.254 -50.00 -4.59e-01
+20    logkappa1         -0.105  -6.75 -4.80e+00
+21     beta2_ct          8.290 -50.00  5.76e+00
+22     beta2_ct          8.290 -50.00  6.00e+00
+23     beta2_ct          8.290 -50.00  6.27e+00
+24     beta2_ct          8.290 -50.00  6.19e+00
+25     beta2_ct          8.290 -50.00  6.86e+00
+26     beta2_ct          8.290 -50.00  6.41e+00
+27     beta2_ct          8.290 -50.00  6.82e+00
+28     beta2_ct          8.290 -50.00  6.29e+00
+29     beta2_ct          8.290 -50.00  6.99e+00
+30     beta2_ct          8.290 -50.00  6.91e+00
+31     beta2_ct          8.290 -50.00  6.32e+00
+32     beta2_ct          8.290 -50.00  6.78e+00
+33     beta2_ct          8.290 -50.00  7.15e+00
+34     beta2_ct          8.290 -50.00  6.60e+00
+35     beta2_ct          8.290 -50.00  6.86e+00
+36   L_omega2_z         -0.313 -50.00 -1.57e+00
+37 L_epsilon2_z          2.240 -50.00 -1.32e-07
+38    logkappa2         -0.105  -6.75 -4.82e+00
+39    logSigmaM          1.609 -50.00  7.44e-01
+   Upper final_gradient
+1  50.00       1.06e-05
+2  50.00      -1.82e-05
+3  50.00       1.25e-04
+4  50.00      -1.18e-04
+5  50.00       1.58e-04
+6  50.00       3.22e-06
+7  50.00       4.20e-05
+8  50.00       1.39e-04
+9  50.00       1.30e-04
+10 50.00       9.50e-05
+11 50.00      -1.94e-04
+12 50.00       2.00e-04
+13 50.00       1.53e-04
+14 50.00      -2.72e-06
+15 50.00      -4.47e-05
+16 50.00       2.06e-05
+17 50.00      -8.15e-05
+18 50.00       2.55e-05
+19 50.00      -4.24e-04
+20 -2.55      -5.14e-05
+21 50.00       3.32e-05
+22 50.00       1.48e-05
+23 50.00       8.92e-05
+24 50.00       1.28e-04
+25 50.00      -2.13e-05
+26 50.00       8.47e-05
+27 50.00      -2.63e-04
+28 50.00      -8.71e-05
+29 50.00      -6.20e-05
+30 50.00       7.67e-05
+31 50.00       1.28e-05
+32 50.00      -9.04e-05
+33 50.00      -4.31e-05
+34 50.00      -1.14e-04
+35 50.00      -1.70e-04
+36 50.00       1.61e-04
+37 50.00      -7.75e-06
+38 -2.55       2.79e-04
+39 10.00       2.94e-03
+
+$SD
+sdreport(.) result
+              Estimate Std. Error
+ln_H_input    3.01e-01     0.2099
+ln_H_input    3.49e-01     0.2140
+beta1_ct     -3.24e+00     0.7298
+beta1_ct     -2.37e+00     0.7281
+beta1_ct     -2.69e+00     0.7295
+beta1_ct     -2.68e+00     0.7292
+beta1_ct     -2.84e+00     0.7269
+beta1_ct     -3.02e+00     0.7299
+beta1_ct     -2.94e+00     0.7369
+beta1_ct     -3.12e+00     0.7318
+beta1_ct     -2.93e+00     0.7282
+beta1_ct     -3.11e+00     0.7296
+beta1_ct     -3.18e+00     0.7316
+beta1_ct     -3.40e+00     0.7341
+beta1_ct     -3.24e+00     0.7368
+beta1_ct     -3.51e+00     0.7336
+beta1_ct     -3.01e+00     0.7350
+L_omega1_z   -2.13e+00     0.2737
+L_epsilon1_z -4.59e-01     0.0752
+logkappa1    -4.80e+00     0.1456
+beta2_ct      5.76e+00     0.6150
+beta2_ct      6.00e+00     0.6072
+beta2_ct      6.27e+00     0.6176
+beta2_ct      6.19e+00     0.6162
+beta2_ct      6.86e+00     0.6129
+beta2_ct      6.41e+00     0.6225
+beta2_ct      6.82e+00     0.6260
+beta2_ct      6.29e+00     0.6223
+beta2_ct      6.99e+00     0.6156
+beta2_ct      6.91e+00     0.6180
+beta2_ct      6.32e+00     0.6198
+beta2_ct      6.78e+00     0.6338
+beta2_ct      7.15e+00     0.6349
+beta2_ct      6.60e+00     0.6301
+beta2_ct      6.86e+00     0.6332
+L_omega2_z   -1.57e+00     0.3016
+L_epsilon2_z -1.32e-07     0.1304
+logkappa2    -4.82e+00     0.3029
+logSigmaM     7.44e-01     0.0165
+Maximum gradient component: 0.00294 
+
