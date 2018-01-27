@@ -1,0 +1,715 @@
+---
+title: |-
+  Single Species Example from Gulf of Alaska with Catchability Covariates
+  RACE Bottom Trawl Survey
+author: "Dr. Curry J. Cunningham"
+date: "January 23, 2018"
+output:
+  html_document:
+    fig_caption: yes
+    highlight: espresso
+    number_sections: yes
+    theme: cerulean
+    toc: yes
+    toc_depth: 2
+  pdf_document:
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+---
+
+\newpage
+
+```{r setup,include=FALSE}
+# install.packages("pander", repos="http://cran.us.r-project.org")
+# install.packages("knitr", repos="http://cran.us.r-project.org")
+# install.packages("kableExtra", repos="http://cran.us.r-project.org")
+require(pander)
+# require(knitr)
+require(kableExtra)
+
+knitr::opts_chunk$set(cache=TRUE)
+options(width=50, width.cutoff=50, digits = 3) 
+```
+
+```{r wrap-hook, echo=FALSE}
+# FROM: https://github.com/yihui/knitr-examples/blob/master/077-wrap-output.Rmd
+library(knitr)
+hook_output = knit_hooks$get('output')
+knit_hooks$set(output = function(x, options) {
+  # this hook is used only when the linewidth option is not NULL
+  if (!is.null(n <- options$linewidth)) {
+    x = knitr:::split_lines(x)
+    # any lines wider than n should be wrapped
+    if (any(nchar(x) > n)) x = strwrap(x, width = n)
+    x = paste(x, collapse = '\n')
+  }
+  hook_output(x, options)
+})
+# TRIGGERED USING `linewidth=60`
+```
+
+#Purpose
+The purpose of this document is to describe how to generate a model-based index of abundance unsing the spatio-temporal delta-GLMM in the [VAST](https://github.com/James-Thorson/VAST) package, while incorporating **catchability covariates**. 
+
+##Background
+**Catchability** covariates attempt to explain residual variance in either the **encounter probability** or **positive catch rate** components of the delta model, given conditions influencing observation uncertainty at the time of sampling. In this way **catchability** covariates which are represented at the haul level, may be contrasted with **density** covariates which attempt to explain the underlying spatial distribution of the observed species and are represented at the knot level. 
+
+###Example notation
+Within the delta-model, the linear predictor for encounter probability can be written as:
+$$
+\begin{aligned}
+p_1(i)=\beta_1(c_i,t_i)+\sum_{f=1}^{n_{\omega1}} L_{\omega1}(c_i,f)\omega1(s_i,f) + \sum_{f=1}^{n_{\epsilon1}} L_{\epsilon1}(c_i,f)\epsilon_1(s_i,f,t_i) \\ + \sum_{f=1}^{n_{\delta1}} L_{\delta1}(v_i,f)\delta_1(v_i,f) + \sum_{p=1}^{n_p} \gamma_1(c_i,t_i,p)X(x_i,t_i,p) + \sum_{k=1}^{n_k} \lambda(k)Q(i,k) 
+\end{aligned}
+$$
+where $p_1(i)$ is the predicotr for observation $i$, $Q(i,k)$ are measured catchability covariates that explain variation in catchability and $\lambda_1(k)$ is the estimated impact of catchability covariates for this linear predictor, and $X(x_i,t_i,p)$ are measured **density** covariates that explain variation in density and $\gamma_1(c_i,t_i,p)$ is the estimated impact of density covariates.
+
+##Hypotheses
+We will be testing two hypotheses:
+* Tow duration (measured in hours) influences the catchability of species in the survey, under the assumption that longer tows should increase encounter probability and/or the positive catch rate if individuals outswim the survey net but tire over time.
+  + Note: Trawl distance (positively correlated with encounter probability) is already accounted for when effort is calculated as area swept (square km).
+* Measured gear temperature influences catchability, due to potential shifts in the vertical distribution of species.
+
+Specifics of this Example:
+
+* Uses [RACE](https://www.afsc.noaa.gov/RACE/groundfish/bottom%20trawl%20surveys.php) bottom trawl survey data.
+    +  Data are available from the [/data](https://github.com/curryc2/AFSC_Spatio-temporal_Workshop/tree/master/data) folder
+* Single species implementation.
+* Gulf of Alaska survey data.
+* Haul-level catchability covariates: (1) tow duration (hours), (2) gear temperature.
+
+***
+
+\newpage
+
+#Setup
+
+##Install required packages
+```{r load_packages, message=FALSE}
+devtools::install_github("nwfsc-assess/geostatistical_delta-GLMM") 
+devtools::install_github("james-thorson/VAST") 
+devtools::install_github("james-thorson/utilities")
+```
+
+##Load required packages
+
+```{r, warning=FALSE, message=FALSE}
+require(dplyr)
+require(VAST)
+require(TMB)
+require(FishData)
+# require(tidyverse)
+```
+
+##Setup model
+###Define species of interest (based on species code) and survey name.
+Species are selected by defining the vector `species.codes` in combination with the `combineSpecies` variable. While most species will have a single species code, there are some examples (i.e. GOA Dusky Rockfish) that require multiple species codes to be combined for a single species index. In this later case `combineSpecies = FALSE` would be specified.
+
+Here are some examples to choose from: 
+
+```{r, echo=FALSE}
+#Load species examples
+species.examples = read.csv("Data/eval_species_list.csv", header=TRUE)
+kable(species.examples)
+```
+
+Example: Pacific Cod in the Gulf of Alaska
+
+```{r}
+species.codes = c(21720)
+survey = "GOA"
+combineSpecies = FALSE
+
+if(survey=="GOA") { Region = 'Gulf_of_Alaska' }
+if(survey=="EBS_SHELF") { Region = "Eastern_Bering_Sea" }
+if(survey=="AI") { Region = "Aleutian Islands" }
+```
+
+
+###Observation reference location settings
+
+```{r}
+lat_lon.def = "start"
+```
+
+###Spatial settings
+The following settings define the spatial resolution for the model (defined by number of knots `n_x`), and whether to use a grid or mesh approximation through the `Method` variable.
+
+```{r}
+Method = c("Grid", "Mesh", "Spherical_mesh")[2]
+grid_size_km = 25
+n_x = c(100, 250, 500, 1000, 2000)[1]
+Kmeans_Config = list( "randomseed"=1, "nstart"=100, "iter.max"=1e3 )
+
+#Strata Limits
+#Basic - Single Area
+strata.limits = data.frame(STRATA = c("All_areas"))
+
+#VAST Version - latest!
+Version = "VAST_v4_0_0"
+```
+
+###Model settings
+
+```{r}
+bias.correct = FALSE
+
+FieldConfig = c(Omega1 = 1, Epsilon1 = 1, Omega2 = 1, Epsilon2 = 1)
+RhoConfig  = c(Beta1 = 0, Beta2 = 0, Epsilon1 = 0, Epsilon2 = 0)
+OverdispersionConfig  = c(Delta1 = 0, Delta2 = 0)
+
+#Observation Model
+ObsModel = c(1,0)
+```
+
+###Save settings
+**DateFile** is the folder that will hold my model outputs.
+
+```{r, warning=FALSE}
+DateFile = paste0(getwd(), "/VAST_output/")
+
+#Create directory
+dir.create(DateFile, recursive=TRUE)
+```
+
+##Specify model outputs
+The following settings define what types of output we want to calculate.
+
+```{r}
+Options = c(SD_site_density = 0, SD_site_logdensity = 0,
+            Calculate_Range = 1, Calculate_evenness = 0, Calculate_effective_area = 1,
+            Calculate_Cov_SE = 0, Calculate_Synchrony = 0,
+            Calculate_Coherence = 0)
+```
+
+***
+
+\newpage
+
+#Prepare the data
+
+* Note: This section can be replace by function `create_VAST_input()`, from `R/create-VAST-input.r`
+
+##Load RACE data
+To create the input data files for VAST model, first we must load RACE survey data.
+Two data files are necessary **(1)** catch data and **(2)** haul data.
+
+###Load and join data
+Catch data
+
+```{r, tidy=TRUE, linewidth=60}
+catch = readRDS("data/race_base_catch.rds")
+
+haul = readRDS("data/race_base_haul.rds")
+haul = haul[haul$ABUNDANCE_HAUL=='Y',]
+
+#Join datasets
+catchhaul = right_join(x=catch, y=haul, by=c("HAULJOIN"))
+
+#Add in zero observations for catch weight, for no catches.
+catchhaul.2 = FishData::add_missing_zeros(data_frame=catchhaul, unique_sample_ID_colname="HAULJOIN",
+                                               sample_colname="WEIGHT", species_colname="SPECIES_CODE",
+                                               species_subset=species.codes,
+                                               if_multiple_records="First",
+                                               Method="Fast")
+
+#Load and attach cruise info
+cruise.info = read.csv("data/race_cruise_info.csv", header=TRUE, stringsAsFactors=FALSE)
+
+catchhaul.3 = inner_join(x=catchhaul.2, 
+                          y=cruise.info[,c("Cruise.Join.ID","Year","Survey")],
+                          by=c("CRUISEJOIN.x"="Cruise.Join.ID"))
+
+#Limit to survey of interest
+catchhaul.3 = catchhaul.3[catchhaul.3$Survey==survey,]
+
+#Aggregate multiple `species.codes`, if we are combining into a single index.
+if(combineSpecies==TRUE) {
+  catchhaul.4 = data.frame(catchhaul.3 %>% group_by(HAULJOIN) %>% 
+                              mutate('WEIGHT'=sum(WEIGHT, na.rm=TRUE)))
+  #Since we have aggregated, only retain rows for 1st listed species code
+  catchhaul.5 = catchhaul.4[catchhaul.4$SPECIES_CODE==species.codes[1],]
+}else {
+  catchhaul.5 = catchhaul.3
+}
+```
+
+##Standardize data
+In order to standardize the survey catch data, we must calculate effort as area swept per tow.
+
+###Calculate effort
+
+Input effort is in $kilometers^2$
+
+```{r}
+catchhaul.5$effort = catchhaul.5$NET_WIDTH*catchhaul.5$DISTANCE_FISHED/1000
+```
+
+##Add species names
+First, we load the list describing both species names and `species.codes`
+
+```{r}
+species.code.data = read.csv("data/race_species_codes.csv",
+                              header=TRUE, stringsAsFactors=FALSE)
+
+#Next, join this to our overall survey data list
+load.data = merge(x=catchhaul.5, y=species.code.data[,c("Species.Code","Common.Name")], 
+                       by.x="SPECIES_CODE", by.y="Species.Code")
+```
+
+##Build `Data_Geostat`
+
+Now, we will create the list `Data_Geostat` which is the input for the VAST model.
+
+```{r}
+Data_Geostat = NULL
+
+if(length(species.codes) > 1) {
+  Data_Geostat$spp = load.data$Common.Name
+}
+Data_Geostat$Catch_KG = as.numeric(load.data$WEIGHT)  
+Data_Geostat$Year = as.integer(load.data$Year)
+Data_Geostat$Vessel = "missing"
+Data_Geostat$AreaSwept_km2 = as.numeric(load.data$effort)
+Data_Geostat$Pass = 0
+``` 
+
+###Add **catchability** covariates to `Data_Geostat`
+
+Here we can attach our two catchability covariates to our list of input data.
+
+**Hypothesis #1:** Catchability is is influenced by tow duration in hours.
+
+First, lets see what the distribution of tow durations look like...
+
+```{r, echo=FALSE}
+hist(load.data$DURATION, xlab='Tow Duration in Hours', col='blue')
+```
+
+So there seems to be a break down between 0.5 hour and 0.25 hour tows, but when did they occurr?
+
+```{r, echo=FALSE}
+plot(DURATION~Year, data=load.data, type='p', pch=21, bg=rgb(0,0,1,alpha=0.25), xlab='Year', ylab='Tow Duration (hours)')
+```
+
+Ok lets attach these data to `Data_Geostat`
+
+```{r}
+Data_Geostat$Duration <- as.numeric(load.data$DURATION)
+```
+
+\newpage
+
+**Hypothesis #2:** Catchability is is influenced by gear temperature.
+
+Again, lets see what the distribution of gear temperatures look like...
+
+```{r, echo=FALSE}
+hist(load.data$GEAR_TEMPERATURE, xlab='Gear Temperature', col='blue')
+```
+
+And lets add this to `Data_Geostat`
+
+```{r}
+Data_Geostat$Gear_Temperature <- as.numeric(load.data$GEAR_TEMPERATURE)
+```
+
+\newpage
+
+###Define location of samples
+
+Depending on `lat_lon.def` specification we will either use the **start**, **end**, or **mean** location recorded for a survey haul.
+
+* Note: Using the starting location of each haul is probably best, as: `lat_lon.def="start"`.
+
+```{r}
+if(lat_lon.def=="start") {
+  Data_Geostat$Lat = load.data$START_LATITUDE
+  Data_Geostat$Lon = load.data$START_LONGITUDE
+}
+if(lat_lon.def=="end") {
+  Data_Geostat$Lat = load.data$END_LATITUDE
+  Data_Geostat$Lon = load.data$END_LONGITUDE
+}
+if(lat_lon.def=="mean") {
+  Data_Geostat$Lat = rowMeans(cbind(load.data$START_LATITUDE, 
+                                     load.data$END_LATITUDE), na.rm=TRUE)
+  
+  Data_Geostat$Lon = rowMeans(cbind(load.data$START_LONGITUDE, 
+                                     load.data$END_LONGITUDE), na.rm=TRUE)
+}
+```
+
+Next, we ensure this `Data_Geostat` is a proper data frame.
+
+```{r}
+Data_Geostat = data.frame(Data_Geostat)
+```
+
+To double check lets see how `Data_Geostat` looks...
+
+```{r, include=TRUE}
+kable(head(Data_Geostat))
+```
+
+##Limit `Data_Geostat` to only tows with recorded `Gear_Temperature`
+
+Upon closer inspection you will notice that some tows did not have a recorded `Gear_Temperature`, appearing as an `NA`. It appears to be ~ 13.7%
+
+```{r}
+nrow(Data_Geostat[is.na(Data_Geostat$Gear_Temperature),])/nrow(Data_Geostat)*100
+```
+
+Given we want to compare models fit to the same data, lets remove these tows without `Gear_Temperature` observations.
+
+```{r}
+Data_Geostat = Data_Geostat[!is.na(Data_Geostat$Gear_Temperature),]
+```
+
+##Create the extrapolation grid
+We also generate the extrapolation grid appropriate for a given region. For new regions, we use Region="Other".
+
+* Note: We are not defining strata limits, but could do so based on latitude and longitude definitions.
+
+```{r, message=FALSE, tidy=TRUE, linewidth=60}
+Extrapolation_List  = SpatialDeltaGLMM::Prepare_Extrapolation_Data_Fn(Region=Region,
+                                                                         strata.limits=strata.limits)
+```
+
+##Create spatial list
+Next, generate the information used for conducting spatio-temporal parameter estimation, bundled in list `Spatial_List`.
+
+```{r spatial_information, message=FALSE, warning=FALSE, tidy=TRUE, linewidth=60}
+Spatial_List = SpatialDeltaGLMM::Spatial_Information_Fn(grid_size_km = grid_size_km, 
+                                         n_x = n_x, Method = Method, 
+                                         Lon = Data_Geostat[,"Lon"], Lat = Data_Geostat[, "Lat"],
+                                         Extrapolation_List = Extrapolation_List,
+                                         randomseed = Kmeans_Config[["randomseed"]],
+                                         nstart = Kmeans_Config[["nstart"]],
+                                         iter.max = Kmeans_Config[["iter.max"]], DirPath = DateFile,
+                                         Save_Results = TRUE)
+```
+
+##Update `Data_Geostat` with knot references
+We then associate each of our haul observations with its appropriate knot.
+
+```{r}
+Data_Geostat = cbind(Data_Geostat, knot_i = Spatial_List$knot_i)
+```
+
+***
+
+\newpage
+
+#Build and run models
+
+Here we are going to build **3** models. 
+
+* **Null Model** which does **not** estimate catchability covariates.
+* **Model 1** testing Hypothesis #1 with **tow duration** as a catchability covariate.
+* **Model 2** testing Hypothesis #2 with **temperature** as a catchability covariate.
+
+##Null Model
+
+First, create a subdirectory for the **Null Model**
+
+```{r, warning=FALSE}
+DateFile_null = paste0(DateFile,"Null/")
+dir.create(DateFile_null)
+```
+
+Building and compiling:
+
+* Note: in `Build_TMB_Fn()` whether to estimate **catchability** covariates is specified by the `Q_Config` argument, and whether to estimate **density** covariates by `CovConfig`.
+
+```{r, message=FALSE, tidy=TRUE, warning=FALSE, results="hide"}
+#Build
+if(length(species.codes) > 1 & combineSpecies==FALSE) {
+  #MULTISPECIES
+  TmbData_null = VAST::Data_Fn(Version=Version, FieldConfig=FieldConfig,
+                    OverdispersionConfig=OverdispersionConfig,
+                    RhoConfig=RhoConfig, ObsModel=ObsModel, c_i=as.numeric(Data_Geostat[,'spp'])-1,
+                    b_i=Data_Geostat[,'Catch_KG'], a_i=Data_Geostat[,'AreaSwept_km2'],
+                    v_i=as.numeric(Data_Geostat[,'Vessel'])-1, s_i=Data_Geostat[,'knot_i']-1,
+                    t_i=Data_Geostat[,'Year'], a_xl=Spatial_List$a_xl, MeshList=Spatial_List$MeshList,
+                    GridList=Spatial_List$GridList, Method=Spatial_List$Method, Options=Options )
+}else {
+  #SINGLE SPECIES
+  TmbData_null = VAST::Data_Fn(Version = Version, FieldConfig = FieldConfig,
+                    OverdispersionConfig = OverdispersionConfig, RhoConfig = RhoConfig,
+                    ObsModel = ObsModel, c_i = rep(0, nrow(Data_Geostat)),
+                    b_i = Data_Geostat[, "Catch_KG"], a_i = Data_Geostat[,"AreaSwept_km2"],
+                    v_i = as.numeric(Data_Geostat[,"Vessel"]) - 1,
+                    s_i = Data_Geostat[, "knot_i"] - 1, t_i = Data_Geostat[, "Year"],
+                    a_xl = Spatial_List$a_xl,
+                    MeshList = Spatial_List$MeshList, GridList = Spatial_List$GridList,
+                    Method = Spatial_List$Method, Options = Options)
+}
+
+#Compile TMB object
+TmbList_null = VAST::Build_TMB_Fn(TmbData = TmbData_null, RunDir = DateFile_null,
+                                Version = Version, RhoConfig = RhoConfig, 
+                                loc_x = Spatial_List$loc_x,
+                                Method = Method, Q_Config=FALSE, CovConfig=FALSE)
+Obj_null = TmbList_null[["Obj"]]
+```
+
+Fit VAST model to the data by optimizing the TMB function.
+
+```{r, results="hide"}
+Opt_null = TMBhelper::Optimize(obj = Obj_null, lower = TmbList_null[["Lower"]],
+                          upper = TmbList_null[["Upper"]], getsd = TRUE, 
+                          savedir = DateFile_null,
+                          bias.correct = bias.correct)
+```
+
+Save outputs from estimation
+
+```{r}
+Report_null = Obj_null$report()
+
+Save_null = list("Opt"=Opt_null, "Report"=Report_null, 
+                 "ParHat"=Obj_null$env$parList(Opt_null$par), 
+                 "TmbData"=TmbData_null)
+
+save(Save_null, file=paste0(DateFile_null,"Save.RData"))
+```
+
+##Model 1
+
+First, create a subdirectory for the **Model 1**
+
+```{r, warning=FALSE}
+DateFile_Mod1 = paste0(DateFile,"Model 1/")
+dir.create(DateFile_Mod1)
+```
+
+Building and compiling:
+
+`Q_ik` is the argument to Data_Fn for catchability covariates.
+
+* Note: `Q_ik` expects a matrix so we specify `Q_ik=as.matrix(Data_Geostat[,'Duration'])`
+
+```{r, message=FALSE, tidy=TRUE, warning=FALSE, results="hide"}
+#Build
+if(length(species.codes) > 1 & combineSpecies==FALSE) {
+  #MULTISPECIES
+  TmbData_Mod1 = VAST::Data_Fn(Version=Version, FieldConfig=FieldConfig,
+                    OverdispersionConfig=OverdispersionConfig,
+                    RhoConfig=RhoConfig, ObsModel=ObsModel, c_i=as.numeric(Data_Geostat[,'spp'])-1,
+                    b_i=Data_Geostat[,'Catch_KG'], a_i=Data_Geostat[,'AreaSwept_km2'],
+                    v_i=as.numeric(Data_Geostat[,'Vessel'])-1, s_i=Data_Geostat[,'knot_i']-1,
+                    t_i=Data_Geostat[,'Year'], a_xl=Spatial_List$a_xl, MeshList=Spatial_List$MeshList,
+                    GridList=Spatial_List$GridList, Method=Spatial_List$Method, Options=Options,
+                    Q_ik=as.matrix(Data_Geostat[,'Duration']))
+}else {
+  #SINGLE SPECIES
+  TmbData_Mod1 = VAST::Data_Fn(Version = Version, FieldConfig = FieldConfig,
+                    OverdispersionConfig = OverdispersionConfig, RhoConfig = RhoConfig,
+                    ObsModel = ObsModel, c_i = rep(0, nrow(Data_Geostat)),
+                    b_i = Data_Geostat[, "Catch_KG"], a_i = Data_Geostat[,"AreaSwept_km2"],
+                    v_i = as.numeric(Data_Geostat[,"Vessel"]) - 1,
+                    s_i = Data_Geostat[, "knot_i"] - 1, t_i = Data_Geostat[, "Year"],
+                    a_xl = Spatial_List$a_xl,
+                    MeshList = Spatial_List$MeshList, GridList = Spatial_List$GridList,
+                    Method = Spatial_List$Method, Options = Options,
+                    Q_ik=as.matrix(Data_Geostat[,'Duration']))
+}
+
+#Compile TMB object
+TmbList_Mod1 = VAST::Build_TMB_Fn(TmbData = TmbData_Mod1, RunDir = DateFile_Mod1,
+                                Version = Version, RhoConfig = RhoConfig, 
+                                loc_x = Spatial_List$loc_x,
+                                Method = Method, Q_Config=TRUE, CovConfig=FALSE)
+Obj_Mod1 = TmbList_Mod1[["Obj"]]
+```
+
+Fit VAST model to the data by optimizing the TMB function.
+
+```{r, results="hide"}
+Opt_Mod1 = TMBhelper::Optimize(obj = Obj_Mod1, lower = TmbList_Mod1[["Lower"]],
+                          upper = TmbList_Mod1[["Upper"]], getsd = TRUE, 
+                          savedir = DateFile_Mod1,
+                          bias.correct = bias.correct)
+```
+
+Save outputs from estimation
+
+```{r}
+Report_Mod1 = Obj_Mod1$report()
+
+Save_Mod1 = list("Opt"=Opt_Mod1, "Report"=Report_Mod1, 
+                 "ParHat"=Obj_Mod1$env$parList(Opt_Mod1$par), 
+                 "TmbData"=TmbData_Mod1)
+
+save(Save_Mod1, file=paste0(DateFile_Mod1,"Save.RData"))
+```
+
+##Model 2
+
+First, create a subdirectory for the **Model 2**
+
+```{r, warning=FALSE}
+DateFile_Mod2 = paste0(DateFile,"Model 2/")
+dir.create(DateFile_Mod2)
+```
+
+Building and compiling:
+
+`Q_ik` is the argument to Data_Fn for catchability covariates.
+
+* Note: `Q_ik` expects a matrix so we specify `Q_ik=as.matrix(Data_Geostat[,'Gear_Temperature'])`
+
+```{r, message=FALSE, tidy=TRUE, warning=FALSE, results="hide"}
+#Build
+if(length(species.codes) > 1 & combineSpecies==FALSE) {
+  #MULTISPECIES
+  TmbData_Mod2 = VAST::Data_Fn(Version=Version, FieldConfig=FieldConfig,
+                    OverdispersionConfig=OverdispersionConfig,
+                    RhoConfig=RhoConfig, ObsModel=ObsModel, c_i=as.numeric(Data_Geostat[,'spp'])-1,
+                    b_i=Data_Geostat[,'Catch_KG'], a_i=Data_Geostat[,'AreaSwept_km2'],
+                    v_i=as.numeric(Data_Geostat[,'Vessel'])-1, s_i=Data_Geostat[,'knot_i']-1,
+                    t_i=Data_Geostat[,'Year'], a_xl=Spatial_List$a_xl, MeshList=Spatial_List$MeshList,
+                    GridList=Spatial_List$GridList, Method=Spatial_List$Method, Options=Options,
+                    Q_ik=as.matrix(Data_Geostat[,'Gear_Temperature']))
+}else {
+  #SINGLE SPECIES
+  TmbData_Mod2 = VAST::Data_Fn(Version = Version, FieldConfig = FieldConfig,
+                    OverdispersionConfig = OverdispersionConfig, RhoConfig = RhoConfig,
+                    ObsModel = ObsModel, c_i = rep(0, nrow(Data_Geostat)),
+                    b_i = Data_Geostat[, "Catch_KG"], a_i = Data_Geostat[,"AreaSwept_km2"],
+                    v_i = as.numeric(Data_Geostat[,"Vessel"]) - 1,
+                    s_i = Data_Geostat[, "knot_i"] - 1, t_i = Data_Geostat[, "Year"],
+                    a_xl = Spatial_List$a_xl,
+                    MeshList = Spatial_List$MeshList, GridList = Spatial_List$GridList,
+                    Method = Spatial_List$Method, Options = Options,
+                    Q_ik=as.matrix(Data_Geostat[,'Gear_Temperature']))
+}
+
+#Compile TMB object
+TmbList_Mod2 = VAST::Build_TMB_Fn(TmbData = TmbData_Mod2, RunDir = DateFile_Mod2,
+                                Version = Version, RhoConfig = RhoConfig, 
+                                loc_x = Spatial_List$loc_x,
+                                Method = Method, Q_Config=TRUE, CovConfig=FALSE)
+Obj_Mod2 = TmbList_Mod2[["Obj"]]
+```
+
+Fit VAST model to the data by optimizing the TMB function.
+
+```{r, results="hide"}
+Opt_Mod2 = TMBhelper::Optimize(obj = Obj_Mod2, lower = TmbList_Mod2[["Lower"]],
+                          upper = TmbList_Mod2[["Upper"]], getsd = TRUE, 
+                          savedir = DateFile_Mod2,
+                          bias.correct = bias.correct)
+```
+
+Save outputs from estimation
+
+```{r}
+Report_Mod2 = Obj_Mod2$report()
+
+Save_Mod2 = list("Opt"=Opt_Mod2, "Report"=Report_Mod2, 
+                 "ParHat"=Obj_Mod2$env$parList(Opt_Mod2$par), 
+                 "TmbData"=TmbData_Mod1)
+
+save(Save_Mod2, file=paste0(DateFile_Mod2,"Save.RData"))
+```
+
+***
+
+\newpage
+
+#Compare Models
+
+##Check convergence
+
+To evaluate convergence of our three candidate models we will look at convergence and the maximum gradient, which can both be accessed from the **Opt** object as **Opt$convergence** and **Opt$max_gradient**.
+
+* Note: **Opt$convergence = 0** indicates relative convergence.
+
+```{r}
+temp.table = NULL
+temp.table$name = c('Null Model', 'Model 1', 'Model 2')
+temp.table$convergence = c(Opt_null$convergence, 
+                           Opt_Mod1$convergence, 
+                           Opt_Mod2$convergence)
+temp.table$message = c(Opt_null$message, 
+                       Opt_Mod1$message, 
+                       Opt_Mod2$message)
+temp.table$max_gradient = c(Opt_null$max_gradient, 
+                            Opt_Mod1$max_gradient, 
+                            Opt_Mod2$max_gradient)
+temp.table = data.frame(temp.table)
+names(temp.table) = c('Model Name','Convergence','Message','Maximum Gradient')
+#Print the table
+kable(temp.table, digits=5)
+```
+
+##Covariate effects
+
+Now that we have fit these three alternative models and checked convergence, lets see what the estimates are for the effect of each covariate on catchability.
+We can access
+
+###**Model 1** with tow duration
+
+We can recall that the parameters describing the effect of **catchability** covariates on the encounter probability component of our delta-model is $\lambda_1(k)$, and the effect on the positive catch rate component is $\lambda_2(k)$.
+
+So, in our mode output below we are intersted in:
+
+* `lambda1_k` - Effect of tow duration on encounter probability.
+* `lambda2_k` - Effect of tow duration on positive catch rate.
+
+```{r}
+Opt_Mod1$SD
+```
+
+\newpage
+
+##**Model 2** with gear temperature
+
+For our second model we are interested in:
+
+* `lambda1_k` - Effect of gear temperature on encounter probability.
+* `lambda2_k` - Effect of gear temperature on positive catch rate.
+
+```{r}
+Opt_Mod2$SD
+```
+
+\newpage
+
+##Compare AIC across models
+
+One way to compare across our candidate models with and without catchability covariates is to use AIC. The AIC for each model can be accessed from **Opt$AIC**.
+
+Lets compare AIC across models...
+
+```{r}
+aic.table <- NULL
+aic.table$name = c('Null Model', 'Model 1', 'Model 2')
+aic.table$AIC = c(Opt_null$AIC, Opt_Mod1$AIC, Opt_Mod2$AIC)
+#Calculate dAIC
+aic.table$dAIC <- aic.table$AIC - min(aic.table$AIC)
+#Data frame
+aic.table <- data.frame(aic.table)
+names(aic.table) <- c('Model Name', 'AIC', 'dAIC')
+#Print the table
+kable(aic.table, digits=5)
+```
+
+***
+
+\newpage
+
+#General conclusions
+
+Here are some general conclusions regarding GOA Pacific Cod:
+
+* For **Model 1** the effect of tow duration is highly uncertain with CV>1 estimated for effects of this covariate on both encounter probability `lambda1_k` and positive catch rate `lambda2_k`.
+* For **Model 2** estimated catchability covariate effects have lower uncertainty
+  + Encounter probability is estimated to **increase** with gear temperature.
+  + Positive catch rate is estimated to **decrease** with gear temperature.
+* It appears that **Model 2** which incorporates **gear temperature** as a **catchability** covariate provides a more parsimonious fit to the survey data.
+* It should be noted that a Poisson-link delta-model may be a better way to correct for differences in tow duration.
+  + This may be specified with `ObsModel = c(1,1)`.
+  
