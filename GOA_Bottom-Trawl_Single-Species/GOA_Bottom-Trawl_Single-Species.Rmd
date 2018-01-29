@@ -235,16 +235,29 @@ To create the input data files for VAST model, first we must load RACE survey da
 Two data files are necessary **(1)** catch data and **(2)** haul data.
 
 ###Load data
-Catch data
+
+**Catch data**
 
 ```{r}
 catch = readRDS("data/race_base_catch.rds")
 ```
 
-Haul data
+Lets see what `catch` contains...
+
+```{r}
+names(catch)
+```
+
+**Haul data**
 
 ```{r}
 haul = readRDS("data/race_base_haul.rds")
+```
+
+Lets see what `haul` contains...
+
+```{r}
+names(haul)
 ```
 
 Limit haul dataset to only abundance hauls
