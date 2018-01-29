@@ -5,6 +5,10 @@ title: |-
 author: "Dr. Curry J. Cunningham"
 date: "January 23, 2018"
 output:
+  pdf_document:
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
   html_document:
     fig_caption: yes
     highlight: espresso
@@ -12,10 +16,6 @@ output:
     theme: cerulean
     toc: yes
     toc_depth: 2
-  pdf_document:
-    fig_caption: yes
-    number_sections: yes
-    toc: yes
 ---
 
 \newpage
@@ -195,8 +195,6 @@ To create the input data files for VAST model, first we must load RACE survey da
 Two data files are necessary **(1)** catch data and **(2)** haul data.
 
 ###Load and join data
-Catch data
-
 ```{r, tidy=TRUE, linewidth=60}
 catch = readRDS("data/race_base_catch.rds")
 
@@ -232,6 +230,12 @@ if(combineSpecies==TRUE) {
 }else {
   catchhaul.5 = catchhaul.3
 }
+```
+
+Lets see what `catchhaul.5` contains....
+
+```{r}
+names(catchhaul.5)
 ```
 
 ##Standardize data
@@ -648,7 +652,6 @@ kable(temp.table, digits=5)
 ##Covariate effects
 
 Now that we have fit these three alternative models and checked convergence, lets see what the estimates are for the effect of each covariate on catchability.
-We can access
 
 ###**Model 1** with tow duration
 
@@ -665,7 +668,7 @@ Opt_Mod1$SD
 
 \newpage
 
-##**Model 2** with gear temperature
+###**Model 2** with gear temperature
 
 For our second model we are interested in:
 
@@ -713,3 +716,4 @@ Here are some general conclusions regarding GOA Pacific Cod:
 * It should be noted that a Poisson-link delta-model may be a better way to correct for differences in tow duration.
   + This may be specified with `ObsModel = c(1,1)`.
   
+***  
