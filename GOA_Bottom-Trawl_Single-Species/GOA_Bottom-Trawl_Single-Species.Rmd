@@ -484,7 +484,7 @@ Fit VAST model to the data by optimizing the TMB function.
 ```{r, results="hide"}
 Opt = TMBhelper::Optimize(obj = Obj, lower = TmbList[["Lower"]],
                           upper = TmbList[["Upper"]], getsd = TRUE, savedir = DateFile,
-                          bias.correct = bias.correct)
+                          bias.correct = bias.correct, newtonsteps = 2)
 ```
 
 ###Save output
