@@ -35,3 +35,8 @@ vignettes/*.pdf
 
 # Zip files
 *.zip
+
+# Ignore TMB model files
+*.so
+*.o
+*.cpp
