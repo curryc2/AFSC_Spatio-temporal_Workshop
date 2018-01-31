@@ -40,3 +40,8 @@ vignettes/*.pdf
 *.so
 *.o
 *.cpp
+
+#Testing folder
+testing/
+
+zipped examples/

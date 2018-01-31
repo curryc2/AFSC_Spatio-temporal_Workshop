@@ -21,20 +21,19 @@ output:
 \newpage
 
 ```{r setup,include=FALSE}
-# install.packages("pander", repos="http://cran.us.r-project.org")
-# install.packages("knitr", repos="http://cran.us.r-project.org")
-# install.packages("kableExtra", repos="http://cran.us.r-project.org")
+install.packages("pander", repos="http://cran.us.r-project.org")
+install.packages("knitr", repos="http://cran.us.r-project.org")
+install.packages("kableExtra", repos="http://cran.us.r-project.org")
 require(pander)
-# require(knitr)
+require(knitr)
 require(kableExtra)
 
 knitr::opts_chunk$set(cache=TRUE)
-options(width=50, width.cutoff=50, digits = 3) 
+options(width=50, width.cutoff=50, digits = 6) 
 ```
 
 ```{r wrap-hook, echo=FALSE}
 # FROM: https://github.com/yihui/knitr-examples/blob/master/077-wrap-output.Rmd
-library(knitr)
 hook_output = knit_hooks$get('output')
 knit_hooks$set(output = function(x, options) {
   # this hook is used only when the linewidth option is not NULL
@@ -195,6 +194,8 @@ To create the input data files for VAST model, first we must load RACE survey da
 Two data files are necessary **(1)** catch data and **(2)** haul data.
 
 ###Load and join data
+Catch data
+
 ```{r, tidy=TRUE, linewidth=60}
 catch = readRDS("data/race_base_catch.rds")
 
@@ -230,12 +231,6 @@ if(combineSpecies==TRUE) {
 }else {
   catchhaul.5 = catchhaul.3
 }
-```
-
-Lets see what `catchhaul.5` contains....
-
-```{r}
-names(catchhaul.5)
 ```
 
 ##Standardize data
@@ -464,7 +459,7 @@ Fit VAST model to the data by optimizing the TMB function.
 Opt_null = TMBhelper::Optimize(obj = Obj_null, lower = TmbList_null[["Lower"]],
                           upper = TmbList_null[["Upper"]], getsd = TRUE, 
                           savedir = DateFile_null,
-                          bias.correct = bias.correct)
+                          bias.correct = bias.correct, newtonsteps=2)
 ```
 
 Save outputs from estimation
@@ -534,7 +529,7 @@ Fit VAST model to the data by optimizing the TMB function.
 Opt_Mod1 = TMBhelper::Optimize(obj = Obj_Mod1, lower = TmbList_Mod1[["Lower"]],
                           upper = TmbList_Mod1[["Upper"]], getsd = TRUE, 
                           savedir = DateFile_Mod1,
-                          bias.correct = bias.correct)
+                          bias.correct = bias.correct, newtonsteps=2)
 ```
 
 Save outputs from estimation
@@ -604,7 +599,7 @@ Fit VAST model to the data by optimizing the TMB function.
 Opt_Mod2 = TMBhelper::Optimize(obj = Obj_Mod2, lower = TmbList_Mod2[["Lower"]],
                           upper = TmbList_Mod2[["Upper"]], getsd = TRUE, 
                           savedir = DateFile_Mod2,
-                          bias.correct = bias.correct)
+                          bias.correct = bias.correct, newtonsteps=2)
 ```
 
 Save outputs from estimation
@@ -634,24 +629,26 @@ To evaluate convergence of our three candidate models we will look at convergenc
 ```{r}
 temp.table = NULL
 temp.table$name = c('Null Model', 'Model 1', 'Model 2')
+temp.table$effect = c('None','Tow Duration', 'Gear Temperature')
 temp.table$convergence = c(Opt_null$convergence, 
                            Opt_Mod1$convergence, 
                            Opt_Mod2$convergence)
-temp.table$message = c(Opt_null$message, 
-                       Opt_Mod1$message, 
-                       Opt_Mod2$message)
 temp.table$max_gradient = c(Opt_null$max_gradient, 
                             Opt_Mod1$max_gradient, 
                             Opt_Mod2$max_gradient)
 temp.table = data.frame(temp.table)
-names(temp.table) = c('Model Name','Convergence','Message','Maximum Gradient')
+names(temp.table) = c('Model Name','Catchability Covariate','Convergence','Maximum Gradient')
 #Print the table
-kable(temp.table, digits=5)
+# kable(temp.table)
+pander::pandoc.table(temp.table)
 ```
 
 ##Covariate effects
 
 Now that we have fit these three alternative models and checked convergence, lets see what the estimates are for the effect of each covariate on catchability.
+We can access
+
+\newpage
 
 ###**Model 1** with tow duration
 
@@ -690,14 +687,16 @@ Lets compare AIC across models...
 ```{r}
 aic.table <- NULL
 aic.table$name = c('Null Model', 'Model 1', 'Model 2')
+aic.table$effect = c('None','Tow Duration', 'Gear Temperature')
 aic.table$AIC = c(Opt_null$AIC, Opt_Mod1$AIC, Opt_Mod2$AIC)
 #Calculate dAIC
 aic.table$dAIC <- aic.table$AIC - min(aic.table$AIC)
 #Data frame
 aic.table <- data.frame(aic.table)
-names(aic.table) <- c('Model Name', 'AIC', 'dAIC')
+names(aic.table) <- c('Model Name', 'Catchability Covariate', 'AIC', 'dAIC')
 #Print the table
-kable(aic.table, digits=5)
+kable(aic.table)
+# pander::pandoc.table(aic.table)
 ```
 
 ***
@@ -717,3 +716,168 @@ Here are some general conclusions regarding GOA Pacific Cod:
   + This may be specified with `ObsModel = c(1,1)`.
   
 ***  
+
+\newpage
+
+#Specifying **catchability** covariates for positive catch rate **only**
+
+Given you assumptions about the sampling process, it may make more sense to estimate the effect of the **catchability** covariates on the **positive catch rate** component of the delta-model only. 
+To do so, we must:
+
+* Modify the `Tmb_List_...` object by...
+  + Extracting the `$Map` object, as: `Map = TmbList$Map`
+  + Modifying `Map` to turn off estimation of `lambda1_k`, as: `Map[["lambda1_k"]] = rep(NA, length(TmbList$Parameters$lambda1_k))`
+* Recompile the `TmbList_...` with `VAST::BuildTMB_Fn()`
+
+As an example we will update, recompile, and re-fit **Model 1** and **Model 2**, so that the effect of **tow duration** and **gear temperature** is only linked to encounter probability.
+We will refer to these as **Model 1b** and **Model 2b**.
+
+##**Model 1b:** tow duration effect on encounter probability **only**
+
+First, lets take the existing `TmbList_Mod1` from **Model 1** and extract `$Map`
+
+```{r}
+Map_1b = TmbList_Mod1$Map
+```
+
+Next, lets turn off estimation of `lambda2_k`, lambda_k being the effect of **catchability** covariates, and **2** indicating this is for the *positive catch rate* component of the delta-model.
+
+```{r}
+Map_1b[["lambda1_k"]] = factor(rep(NA, length(TmbList_Mod1$Parameters$lambda1_k)))
+```
+
+Finally, lets recompile the model.
+
+* Note: We
+
+```{r}
+#New file
+DateFile_Mod1b = paste0(DateFile,"/Model 1b/")
+dir.create(DateFile_Mod1b)
+
+#Recompile
+TmbList_Mod1b = VAST::Build_TMB_Fn(TmbData = TmbData_Mod1, RunDir = DateFile_Mod1b,
+                                Version = Version, RhoConfig = RhoConfig, 
+                                loc_x = Spatial_List$loc_x,
+                                Method = Method, Q_Config=TRUE, CovConfig=FALSE, Map=Map_1b)
+Obj_Mod1b = TmbList_Mod1b$Obj
+```
+
+Fit VAST model to the data by optimizing the TMB function.
+
+```{r, results="hide"}
+Opt_Mod1b = TMBhelper::Optimize(obj = Obj_Mod1b, lower = TmbList_Mod1b[["Lower"]],
+                          upper = TmbList_Mod1b[["Upper"]], getsd = TRUE, 
+                          savedir = DateFile_Mod1b,
+                          bias.correct = bias.correct, newtonsteps=2)
+```
+
+Save outputs from estimation
+
+```{r}
+Report_Mod1b = Obj_Mod1b$report()
+
+Save_Mod1b = list("Opt"=Opt_Mod1b, "Report"=Report_Mod1b, 
+                 "ParHat"=Obj_Mod1b$env$parList(Opt_Mod1b$par), 
+                 "TmbData"=TmbData_Mod1)
+
+save(Save_Mod1b, file=paste0(DateFile_Mod1b,"Save.RData"))
+```
+
+##**Model 2b:** tow duration effect on encounter probability **only**
+
+First, lets take the existing `TmbList_Mod2` from **Model 2** and extract `$Map`
+
+```{r}
+Map_2b = TmbList_Mod2$Map
+```
+
+Next, lets turn off estimation of `lambda2_k`, lambda_k being the effect of **catchability** covariates, and **2** indicating this is for the *positive catch rate* component of the delta-model.
+
+```{r}
+Map_2b[["lambda1_k"]] = factor(rep(NA, length(TmbList_Mod2$Parameters$lambda1_k)))
+```
+
+Finally, lets recompile the model.
+
+```{r}
+#New file
+DateFile_Mod2b = paste0(DateFile,"/Model 2b/")
+dir.create(DateFile_Mod2b)
+
+#Recompile
+TmbList_Mod2b = VAST::Build_TMB_Fn(TmbData = TmbData_Mod2, RunDir = DateFile_Mod2b,
+                                Version = Version, RhoConfig = RhoConfig, 
+                                loc_x = Spatial_List$loc_x,
+                                Method = Method, Q_Config=TRUE, CovConfig=FALSE, Map=Map_2b)
+Obj_Mod2b = TmbList_Mod2b$Obj
+```
+
+Fit VAST model to the data by optimizing the TMB function.
+
+```{r, results="hide"}
+Opt_Mod2b = TMBhelper::Optimize(obj = Obj_Mod2b, lower = TmbList_Mod2b[["Lower"]],
+                          upper = TmbList_Mod2b[["Upper"]], getsd = TRUE, 
+                          savedir = DateFile_Mod2b,
+                          bias.correct = bias.correct, newtonsteps=2)
+```
+
+Save outputs from estimation
+
+```{r}
+Report_Mod2b = Obj_Mod2b$report()
+
+Save_Mod2b = list("Opt"=Opt_Mod2b, "Report"=Report_Mod2b, 
+                 "ParHat"=Obj_Mod2b$env$parList(Opt_Mod2b$par), 
+                 "TmbData"=TmbData_Mod2)
+
+save(Save_Mod2b, file=paste0(DateFile_Mod2b,"Save.RData"))
+```
+
+##Convergence of five models
+```{r}
+temp.table = NULL
+temp.table$name = c('Null Model', 'Model 1', 'Model 2', 'Model 1b', 'Model 2b')
+temp.table$effect = c('None','Tow Duration', 'Gear Temperature', 'Tow Duration (PCR-only)', 'Gear Temperature (PCR-only)')
+temp.table$convergence = c(Opt_null$convergence, 
+                           Opt_Mod1$convergence, 
+                           Opt_Mod2$convergence,
+                           Opt_Mod1b$convergence,
+                           Opt_Mod2b$convergence)
+temp.table$max_gradient = c(Opt_null$max_gradient, 
+                            Opt_Mod1$max_gradient, 
+                            Opt_Mod2$max_gradient,
+                            Opt_Mod1b$max_gradient,
+                            Opt_Mod2b$max_gradient)
+temp.table = data.frame(temp.table)
+names(temp.table) = c('Model Name','Catchability Covariate','Convergence','Maximum Gradient')
+#Print the table
+# kable(temp.table)
+pander::pandoc.table(temp.table)
+```
+
+##Compare AIC for five models
+
+Lets compare AIC across models...
+
+```{r}
+aic.table <- NULL
+aic.table$name = c('Null Model', 'Model 1', 'Model 2', 'Model 1b', 'Model 2b')
+aic.table$effect = c('None','Tow Duration', 'Gear Temperature', 'Tow Duration (PCR-only)', 'Gear Temperature (PCR-only)')
+aic.table$AIC = c(Opt_null$AIC, Opt_Mod1$AIC, Opt_Mod2$AIC, Opt_Mod1b$AIC, Opt_Mod2b$AIC)
+#Calculate dAIC
+aic.table$dAIC <- aic.table$AIC - min(aic.table$AIC)
+#Data frame
+aic.table <- data.frame(aic.table)
+names(aic.table) <- c('Model Name', 'Catchability Covariate', 'AIC', 'dAIC')
+#Print the table
+kable(aic.table)
+# pander::pandoc.table(aic.table)
+```
+
+
+
+
+
+
+

@@ -184,6 +184,12 @@ $(document).ready(function () {
 <li><a href="#compare-aic-across-models"><span class="toc-section-number">5.3</span> Compare AIC across models</a></li>
 </ul></li>
 <li><a href="#general-conclusions"><span class="toc-section-number">6</span> General conclusions</a></li>
+<li><a href="#specifying-catchability-covariates-for-positive-catch-rate-only"><span class="toc-section-number">7</span> Specifying <strong>catchability</strong> covariates for positive catch rate <strong>only</strong></a><ul>
+<li><a href="#model-1b-tow-duration-effect-on-encounter-probability-only"><span class="toc-section-number">7.1</span> <strong>Model 1b:</strong> tow duration effect on encounter probability <strong>only</strong></a></li>
+<li><a href="#model-2b-tow-duration-effect-on-encounter-probability-only"><span class="toc-section-number">7.2</span> <strong>Model 2b:</strong> tow duration effect on encounter probability <strong>only</strong></a></li>
+<li><a href="#convergence-of-five-models"><span class="toc-section-number">7.3</span> Convergence of five models</a></li>
+<li><a href="#compare-aic-for-five-models"><span class="toc-section-number">7.4</span> Compare AIC for five models</a></li>
+</ul></li>
 </ul>
 </div>
 
@@ -453,6 +459,7 @@ ObsModel =<span class="st"> </span><span class="kw">c</span>(<span class="dv">1<
 <p>To create the input data files for VAST model, first we must load RACE survey data. Two data files are necessary <strong>(1)</strong> catch data and <strong>(2)</strong> haul data.</p>
 <div id="load-and-join-data" class="section level3">
 <h3><span class="header-section-number">3.1.1</span> Load and join data</h3>
+<p>Catch data</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">catch =<span class="st"> </span><span class="kw">readRDS</span>(<span class="st">&quot;data/race_base_catch.rds&quot;</span>)
 
 haul =<span class="st"> </span><span class="kw">readRDS</span>(<span class="st">&quot;data/race_base_haul.rds&quot;</span>)
@@ -493,31 +500,6 @@ if (combineSpecies ==<span class="st"> </span><span class="ot">TRUE</span>) {
 } else {
     catchhaul<span class="fl">.5</span> =<span class="st"> </span>catchhaul<span class="fl">.3</span>
 }</code></pre></div>
-<p>Lets see what <code>catchhaul.5</code> contains….</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">names</span>(catchhaul<span class="fl">.5</span>)</code></pre></div>
-<pre><code>##  [1] &quot;CRUISEJOIN.x&quot;        &quot;HAULJOIN&quot;           
-##  [3] &quot;CATCHJOIN&quot;           &quot;REGION.x&quot;           
-##  [5] &quot;VESSEL.x&quot;            &quot;CRUISE.x&quot;           
-##  [7] &quot;HAUL.x&quot;              &quot;SPECIES_CODE&quot;       
-##  [9] &quot;WEIGHT&quot;              &quot;NUMBER_FISH&quot;        
-## [11] &quot;SUBSAMPLE_CODE&quot;      &quot;VOUCHER&quot;            
-## [13] &quot;AUDITJOIN.x&quot;         &quot;CRUISEJOIN.y&quot;       
-## [15] &quot;REGION.y&quot;            &quot;VESSEL.y&quot;           
-## [17] &quot;CRUISE.y&quot;            &quot;HAUL.y&quot;             
-## [19] &quot;HAUL_TYPE&quot;           &quot;PERFORMANCE&quot;        
-## [21] &quot;START_TIME&quot;          &quot;DURATION&quot;           
-## [23] &quot;DISTANCE_FISHED&quot;     &quot;NET_WIDTH&quot;          
-## [25] &quot;NET_MEASURED&quot;        &quot;NET_HEIGHT&quot;         
-## [27] &quot;STRATUM&quot;             &quot;START_LATITUDE&quot;     
-## [29] &quot;END_LATITUDE&quot;        &quot;START_LONGITUDE&quot;    
-## [31] &quot;END_LONGITUDE&quot;       &quot;STATIONID&quot;          
-## [33] &quot;GEAR_DEPTH&quot;          &quot;BOTTOM_DEPTH&quot;       
-## [35] &quot;BOTTOM_TYPE&quot;         &quot;SURFACE_TEMPERATURE&quot;
-## [37] &quot;GEAR_TEMPERATURE&quot;    &quot;WIRE_LENGTH&quot;        
-## [39] &quot;GEAR&quot;                &quot;ACCESSORIES&quot;        
-## [41] &quot;SUBSAMPLE&quot;           &quot;ABUNDANCE_HAUL&quot;     
-## [43] &quot;AUDITJOIN.y&quot;         &quot;Year&quot;               
-## [45] &quot;Survey&quot;</code></pre>
 </div>
 </div>
 <div id="standardize-data" class="section level2">
@@ -611,70 +593,70 @@ if(lat_lon.def==<span class="st">&quot;mean&quot;</span>) {
 </thead>
 <tbody>
 <tr class="odd">
-<td align="right">190.1</td>
+<td align="right">190.09</td>
 <td align="right">2005</td>
 <td align="left">missing</td>
-<td align="right">0.028</td>
+<td align="right">0.027696</td>
 <td align="right">0</td>
 <td align="right">0.281</td>
 <td align="right">NA</td>
-<td align="right">52.6</td>
-<td align="right">-170</td>
+<td align="right">52.5579</td>
+<td align="right">-169.783</td>
 </tr>
 <tr class="even">
-<td align="right">30.9</td>
+<td align="right">30.89</td>
 <td align="right">2005</td>
 <td align="left">missing</td>
-<td align="right">0.020</td>
+<td align="right">0.020099</td>
 <td align="right">0</td>
 <td align="right">0.252</td>
 <td align="right">4.9</td>
-<td align="right">52.6</td>
-<td align="right">-170</td>
+<td align="right">52.6384</td>
+<td align="right">-169.781</td>
 </tr>
 <tr class="odd">
-<td align="right">242.2</td>
+<td align="right">242.18</td>
 <td align="right">2005</td>
 <td align="left">missing</td>
-<td align="right">0.024</td>
+<td align="right">0.024110</td>
 <td align="right">0</td>
 <td align="right">0.255</td>
 <td align="right">4.7</td>
-<td align="right">52.7</td>
-<td align="right">-169</td>
+<td align="right">52.6713</td>
+<td align="right">-169.428</td>
 </tr>
 <tr class="even">
-<td align="right">39.9</td>
+<td align="right">39.92</td>
 <td align="right">2005</td>
 <td align="left">missing</td>
-<td align="right">0.021</td>
+<td align="right">0.020601</td>
 <td align="right">0</td>
 <td align="right">0.266</td>
 <td align="right">5.2</td>
-<td align="right">53.2</td>
-<td align="right">-168</td>
+<td align="right">53.2410</td>
+<td align="right">-168.072</td>
 </tr>
 <tr class="odd">
-<td align="right">16.2</td>
+<td align="right">16.18</td>
 <td align="right">2005</td>
 <td align="left">missing</td>
-<td align="right">0.019</td>
+<td align="right">0.019489</td>
 <td align="right">0</td>
 <td align="right">0.255</td>
 <td align="right">5.1</td>
-<td align="right">53.2</td>
-<td align="right">-168</td>
+<td align="right">53.1677</td>
+<td align="right">-167.981</td>
 </tr>
 <tr class="even">
-<td align="right">61.2</td>
+<td align="right">61.22</td>
 <td align="right">2005</td>
 <td align="left">missing</td>
-<td align="right">0.021</td>
+<td align="right">0.021170</td>
 <td align="right">0</td>
 <td align="right">0.252</td>
 <td align="right">4.9</td>
-<td align="right">53.1</td>
-<td align="right">-168</td>
+<td align="right">53.0684</td>
+<td align="right">-167.671</td>
 </tr>
 </tbody>
 </table>
@@ -684,7 +666,7 @@ if(lat_lon.def==<span class="st">&quot;mean&quot;</span>) {
 <h2><span class="header-section-number">3.5</span> Limit <code>Data_Geostat</code> to only tows with recorded <code>Gear_Temperature</code></h2>
 <p>Upon closer inspection you will notice that some tows did not have a recorded <code>Gear_Temperature</code>, appearing as an <code>NA</code>. It appears to be ~ 13.7%</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">nrow</span>(Data_Geostat[<span class="kw">is.na</span>(Data_Geostat$Gear_Temperature),])/<span class="kw">nrow</span>(Data_Geostat)*<span class="dv">100</span></code></pre></div>
-<pre><code>## [1] 13.7</code></pre>
+<pre><code>## [1] 13.6865</code></pre>
 <p>Given we want to compare models fit to the same data, lets remove these tows without <code>Gear_Temperature</code> observations.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Data_Geostat =<span class="st"> </span>Data_Geostat[!<span class="kw">is.na</span>(Data_Geostat$Gear_Temperature),]</code></pre></div>
 </div>
@@ -769,7 +751,7 @@ Obj_null =<span class="st"> </span>TmbList_null[[<span class="st">&quot;Obj&quot
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Opt_null =<span class="st"> </span>TMBhelper::<span class="kw">Optimize</span>(<span class="dt">obj =</span> Obj_null, <span class="dt">lower =</span> TmbList_null[[<span class="st">&quot;Lower&quot;</span>]],
                           <span class="dt">upper =</span> TmbList_null[[<span class="st">&quot;Upper&quot;</span>]], <span class="dt">getsd =</span> <span class="ot">TRUE</span>, 
                           <span class="dt">savedir =</span> DateFile_null,
-                          <span class="dt">bias.correct =</span> bias.correct)</code></pre></div>
+                          <span class="dt">bias.correct =</span> bias.correct, <span class="dt">newtonsteps=</span><span class="dv">2</span>)</code></pre></div>
 <p>Save outputs from estimation</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Report_null =<span class="st"> </span>Obj_null$<span class="kw">report</span>()
 
@@ -828,7 +810,7 @@ Obj_Mod1 =<span class="st"> </span>TmbList_Mod1[[<span class="st">&quot;Obj&quot
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Opt_Mod1 =<span class="st"> </span>TMBhelper::<span class="kw">Optimize</span>(<span class="dt">obj =</span> Obj_Mod1, <span class="dt">lower =</span> TmbList_Mod1[[<span class="st">&quot;Lower&quot;</span>]],
                           <span class="dt">upper =</span> TmbList_Mod1[[<span class="st">&quot;Upper&quot;</span>]], <span class="dt">getsd =</span> <span class="ot">TRUE</span>, 
                           <span class="dt">savedir =</span> DateFile_Mod1,
-                          <span class="dt">bias.correct =</span> bias.correct)</code></pre></div>
+                          <span class="dt">bias.correct =</span> bias.correct, <span class="dt">newtonsteps=</span><span class="dv">2</span>)</code></pre></div>
 <p>Save outputs from estimation</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Report_Mod1 =<span class="st"> </span>Obj_Mod1$<span class="kw">report</span>()
 
@@ -887,7 +869,7 @@ Obj_Mod2 =<span class="st"> </span>TmbList_Mod2[[<span class="st">&quot;Obj&quot
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Opt_Mod2 =<span class="st"> </span>TMBhelper::<span class="kw">Optimize</span>(<span class="dt">obj =</span> Obj_Mod2, <span class="dt">lower =</span> TmbList_Mod2[[<span class="st">&quot;Lower&quot;</span>]],
                           <span class="dt">upper =</span> TmbList_Mod2[[<span class="st">&quot;Upper&quot;</span>]], <span class="dt">getsd =</span> <span class="ot">TRUE</span>, 
                           <span class="dt">savedir =</span> DateFile_Mod2,
-                          <span class="dt">bias.correct =</span> bias.correct)</code></pre></div>
+                          <span class="dt">bias.correct =</span> bias.correct, <span class="dt">newtonsteps=</span><span class="dv">2</span>)</code></pre></div>
 <p>Save outputs from estimation</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Report_Mod2 =<span class="st"> </span>Obj_Mod2$<span class="kw">report</span>()
 
@@ -910,53 +892,33 @@ Save_Mod2 =<span class="st"> </span><span class="kw">list</span>(<span class="st
 </ul>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">temp.table =<span class="st"> </span><span class="ot">NULL</span>
 temp.table$name =<span class="st"> </span><span class="kw">c</span>(<span class="st">'Null Model'</span>, <span class="st">'Model 1'</span>, <span class="st">'Model 2'</span>)
+temp.table$effect =<span class="st"> </span><span class="kw">c</span>(<span class="st">'None'</span>,<span class="st">'Tow Duration'</span>, <span class="st">'Gear Temperature'</span>)
 temp.table$convergence =<span class="st"> </span><span class="kw">c</span>(Opt_null$convergence, 
                            Opt_Mod1$convergence, 
                            Opt_Mod2$convergence)
-temp.table$message =<span class="st"> </span><span class="kw">c</span>(Opt_null$message, 
-                       Opt_Mod1$message, 
-                       Opt_Mod2$message)
 temp.table$max_gradient =<span class="st"> </span><span class="kw">c</span>(Opt_null$max_gradient, 
                             Opt_Mod1$max_gradient, 
                             Opt_Mod2$max_gradient)
 temp.table =<span class="st"> </span><span class="kw">data.frame</span>(temp.table)
-<span class="kw">names</span>(temp.table) =<span class="st"> </span><span class="kw">c</span>(<span class="st">'Model Name'</span>,<span class="st">'Convergence'</span>,<span class="st">'Message'</span>,<span class="st">'Maximum Gradient'</span>)
+<span class="kw">names</span>(temp.table) =<span class="st"> </span><span class="kw">c</span>(<span class="st">'Model Name'</span>,<span class="st">'Catchability Covariate'</span>,<span class="st">'Convergence'</span>,<span class="st">'Maximum Gradient'</span>)
 <span class="co">#Print the table</span>
-<span class="kw">kable</span>(temp.table, <span class="dt">digits=</span><span class="dv">5</span>)</code></pre></div>
-<table>
-<thead>
-<tr class="header">
-<th align="left">Model Name</th>
-<th align="right">Convergence</th>
-<th align="left">Message</th>
-<th align="right">Maximum Gradient</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">Null Model</td>
-<td align="right">0</td>
-<td align="left">relative convergence (4)</td>
-<td align="right">0.00317</td>
-</tr>
-<tr class="even">
-<td align="left">Model 1</td>
-<td align="right">0</td>
-<td align="left">relative convergence (4)</td>
-<td align="right">0.01052</td>
-</tr>
-<tr class="odd">
-<td align="left">Model 2</td>
-<td align="right">0</td>
-<td align="left">relative convergence (4)</td>
-<td align="right">0.00274</td>
-</tr>
-</tbody>
-</table>
+<span class="co"># kable(temp.table)</span>
+pander::<span class="kw">pandoc.table</span>(temp.table)</code></pre></div>
+<pre><code>## 
+## ----------------------------------------------------------------------
+##  Model Name   Catchability Covariate   Convergence   Maximum Gradient 
+## ------------ ------------------------ ------------- ------------------
+##  Null Model            None                 0           6.815e-12     
+## 
+##   Model 1          Tow Duration             1            1.17e-07     
+## 
+##   Model 2        Gear Temperature           1           2.302e-07     
+## ----------------------------------------------------------------------</code></pre>
 </div>
 <div id="covariate-effects" class="section level2">
 <h2><span class="header-section-number">5.2</span> Covariate effects</h2>
-<p>Now that we have fit these three alternative models and checked convergence, lets see what the estimates are for the effect of each covariate on catchability.</p>
+<p>Now that we have fit these three alternative models and checked convergence, lets see what the estimates are for the effect of each covariate on catchability. We can access</p>
+
 <div id="model-1-with-tow-duration" class="section level3">
 <h3><span class="header-section-number">5.2.1</span> <strong>Model 1</strong> with tow duration</h3>
 <p>We can recall that the parameters describing the effect of <strong>catchability</strong> covariates on the encounter probability component of our delta-model is <span class="math inline">\(\lambda_1(k)\)</span>, and the effect on the positive catch rate component is <span class="math inline">\(\lambda_2(k)\)</span>.</p>
@@ -967,49 +929,49 @@ temp.table =<span class="st"> </span><span class="kw">data.frame</span>(temp.tab
 </ul>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Opt_Mod1$SD</code></pre></div>
 <pre><code>## sdreport(.) result
-##              Estimate Std. Error
-## ln_H_input    0.64849    0.20259
-## ln_H_input    0.56342    0.20730
-## beta1_ct      0.61408    0.48733
-## beta1_ct      0.93185    0.51232
-## beta1_ct      0.81323    0.50142
-## beta1_ct      0.81283    0.48973
-## beta1_ct      0.47402    0.42532
-## beta1_ct     -0.01305    0.42426
-## beta1_ct     -0.56952    0.44196
-## beta1_ct     -0.08527    0.42061
-## beta1_ct     -0.04390    0.41884
-## beta1_ct     -0.00503    0.42679
-## beta1_ct      0.37853    0.42434
-## beta1_ct      0.38373    0.42684
-## beta1_ct      0.38697    0.42714
-## beta1_ct      0.33956    0.42198
-## beta1_ct     -0.45809    0.42663
-## lambda1_k     0.49209    0.62780
-## L_omega1_z    1.46618    0.16985
-## L_epsilon1_z -0.56886    0.06042
-## logkappa1    -4.45666    0.12561
-## beta2_ct      7.48267    0.34103
-## beta2_ct      7.40082    0.35772
-## beta2_ct      7.48508    0.34540
-## beta2_ct      7.64414    0.34278
-## beta2_ct      7.53088    0.25577
-## beta2_ct      7.39116    0.25760
-## beta2_ct      7.00252    0.27491
-## beta2_ct      7.19416    0.25196
-## beta2_ct      7.19771    0.24964
-## beta2_ct      7.10907    0.25809
-## beta2_ct      7.53411    0.25550
-## beta2_ct      7.52396    0.25762
-## beta2_ct      7.61082    0.25796
-## beta2_ct      7.27990    0.25100
-## beta2_ct      6.90890    0.26379
-## lambda2_k    -0.36355    0.58631
-## L_omega2_z   -0.54564    0.07720
-## L_epsilon2_z  0.33622    0.04953
-## logkappa2    -4.60927    0.17617
-## logSigmaM     0.45724    0.00951
-## Maximum gradient component: 0.0105</code></pre>
+##                Estimate Std. Error
+## ln_H_input    0.6484959 0.20259081
+## ln_H_input    0.5634271 0.20730304
+## beta1_ct      0.6140915 0.48733242
+## beta1_ct      0.9318625 0.51231927
+## beta1_ct      0.8132314 0.50142164
+## beta1_ct      0.8128270 0.48973741
+## beta1_ct      0.4739782 0.42532579
+## beta1_ct     -0.0130992 0.42426490
+## beta1_ct     -0.5695683 0.44196734
+## beta1_ct     -0.0853260 0.42061392
+## beta1_ct     -0.0439489 0.41884564
+## beta1_ct     -0.0050696 0.42679197
+## beta1_ct      0.3784831 0.42434129
+## beta1_ct      0.3836690 0.42683946
+## beta1_ct      0.3869232 0.42714117
+## beta1_ct      0.3395083 0.42198412
+## beta1_ct     -0.4581402 0.42663522
+## lambda1_k     0.4918490 0.62780091
+## L_omega1_z   -1.4661828 0.16984990
+## L_epsilon1_z -0.5688669 0.06042288
+## logkappa1    -4.4566656 0.12560931
+## beta2_ct      7.4826175 0.34103275
+## beta2_ct      7.4007719 0.35772046
+## beta2_ct      7.4850346 0.34540474
+## beta2_ct      7.6440895 0.34277878
+## beta2_ct      7.5308517 0.25576914
+## beta2_ct      7.3911293 0.25760257
+## beta2_ct      7.0024922 0.27491334
+## beta2_ct      7.1941383 0.25196179
+## beta2_ct      7.1976865 0.24964853
+## beta2_ct      7.1090461 0.25809140
+## beta2_ct      7.5340791 0.25549983
+## beta2_ct      7.5239343 0.25762247
+## beta2_ct      7.6107924 0.25796148
+## beta2_ct      7.2798694 0.25100725
+## beta2_ct      6.9088770 0.26379554
+## lambda2_k    -0.3634464 0.58631354
+## L_omega2_z   -0.5456585 0.07720787
+## L_epsilon2_z  0.3362267 0.04953504
+## logkappa2    -4.6092707 0.17616916
+## logSigmaM     0.4572419 0.00950848
+## Maximum gradient component: 1.17038e-07</code></pre>
 
 </div>
 <div id="model-2-with-gear-temperature" class="section level3">
@@ -1021,49 +983,49 @@ temp.table =<span class="st"> </span><span class="kw">data.frame</span>(temp.tab
 </ul>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Opt_Mod2$SD</code></pre></div>
 <pre><code>## sdreport(.) result
-##              Estimate Std. Error
-## ln_H_input      0.643    0.20830
-## ln_H_input      0.579    0.21117
-## beta1_ct       -1.101    0.43652
-## beta1_ct       -0.687    0.45572
-## beta1_ct       -0.705    0.45271
-## beta1_ct       -0.708    0.42913
-## beta1_ct       -1.128    0.42728
-## beta1_ct       -1.492    0.42102
-## beta1_ct       -2.336    0.45332
-## beta1_ct       -1.845    0.43199
-## beta1_ct       -1.736    0.42854
-## beta1_ct       -1.466    0.42163
-## beta1_ct       -1.088    0.42175
-## beta1_ct       -1.216    0.42925
-## beta1_ct       -1.170    0.42929
-## beta1_ct       -1.458    0.43390
-## beta1_ct       -2.172    0.43506
-## lambda1_k       0.311    0.02985
-## L_omega1_z      1.410    0.16305
-## L_epsilon1_z    0.605    0.06086
-## logkappa1      -4.497    0.12051
-## beta2_ct        8.552    0.22234
-## beta2_ct        8.454    0.23778
-## beta2_ct        8.425    0.23635
-## beta2_ct        8.616    0.21245
-## beta2_ct        8.536    0.21117
-## beta2_ct        8.287    0.20434
-## beta2_ct        8.089    0.23694
-## beta2_ct        8.328    0.22223
-## beta2_ct        8.274    0.21700
-## beta2_ct        7.999    0.20348
-## beta2_ct        8.431    0.20271
-## beta2_ct        8.518    0.21236
-## beta2_ct        8.594    0.21434
-## beta2_ct        8.419    0.22072
-## beta2_ct        7.953    0.22573
-## lambda2_k      -0.193    0.02346
-## L_omega2_z     -0.508    0.07026
-## L_epsilon2_z   -0.344    0.05023
-## logkappa2      -4.353    0.19187
-## logSigmaM       0.451    0.00957
-## Maximum gradient component: 0.00274</code></pre>
+##               Estimate Std. Error
+## ln_H_input    0.642764 0.20830246
+## ln_H_input    0.579099 0.21117917
+## beta1_ct     -1.101358 0.43652851
+## beta1_ct     -0.686850 0.45572067
+## beta1_ct     -0.705480 0.45271481
+## beta1_ct     -0.707586 0.42913526
+## beta1_ct     -1.127522 0.42728392
+## beta1_ct     -1.491912 0.42102165
+## beta1_ct     -2.335991 0.45332344
+## beta1_ct     -1.844865 0.43199617
+## beta1_ct     -1.736169 0.42854331
+## beta1_ct     -1.466366 0.42162928
+## beta1_ct     -1.087527 0.42175477
+## beta1_ct     -1.215576 0.42925125
+## beta1_ct     -1.170181 0.42929678
+## beta1_ct     -1.457564 0.43390295
+## beta1_ct     -2.171516 0.43506321
+## lambda1_k     0.310637 0.02984861
+## L_omega1_z    1.410517 0.16305215
+## L_epsilon1_z -0.604803 0.06086523
+## logkappa1    -4.497075 0.12051365
+## beta2_ct      8.552497 0.22234111
+## beta2_ct      8.454392 0.23777976
+## beta2_ct      8.424576 0.23635046
+## beta2_ct      8.615643 0.21244914
+## beta2_ct      8.536293 0.21117141
+## beta2_ct      8.286690 0.20433573
+## beta2_ct      8.089147 0.23694018
+## beta2_ct      8.327692 0.22223155
+## beta2_ct      8.274297 0.21700185
+## beta2_ct      7.998512 0.20347849
+## beta2_ct      8.431237 0.20271388
+## beta2_ct      8.517860 0.21236049
+## beta2_ct      8.593922 0.21434468
+## beta2_ct      8.419032 0.22072325
+## beta2_ct      7.953298 0.22572708
+## lambda2_k    -0.193015 0.02346359
+## L_omega2_z   -0.507525 0.07026177
+## L_epsilon2_z  0.343588 0.05022916
+## logkappa2    -4.353333 0.19186672
+## logSigmaM     0.450651 0.00957048
+## Maximum gradient component: 2.30234e-07</code></pre>
 
 </div>
 </div>
@@ -1073,18 +1035,20 @@ temp.table =<span class="st"> </span><span class="kw">data.frame</span>(temp.tab
 <p>Lets compare AIC across models…</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">aic.table &lt;-<span class="st"> </span><span class="ot">NULL</span>
 aic.table$name =<span class="st"> </span><span class="kw">c</span>(<span class="st">'Null Model'</span>, <span class="st">'Model 1'</span>, <span class="st">'Model 2'</span>)
+aic.table$effect =<span class="st"> </span><span class="kw">c</span>(<span class="st">'None'</span>,<span class="st">'Tow Duration'</span>, <span class="st">'Gear Temperature'</span>)
 aic.table$AIC =<span class="st"> </span><span class="kw">c</span>(Opt_null$AIC, Opt_Mod1$AIC, Opt_Mod2$AIC)
 <span class="co">#Calculate dAIC</span>
 aic.table$dAIC &lt;-<span class="st"> </span>aic.table$AIC -<span class="st"> </span><span class="kw">min</span>(aic.table$AIC)
 <span class="co">#Data frame</span>
 aic.table &lt;-<span class="st"> </span><span class="kw">data.frame</span>(aic.table)
-<span class="kw">names</span>(aic.table) &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">'Model Name'</span>, <span class="st">'AIC'</span>, <span class="st">'dAIC'</span>)
+<span class="kw">names</span>(aic.table) &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">'Model Name'</span>, <span class="st">'Catchability Covariate'</span>, <span class="st">'AIC'</span>, <span class="st">'dAIC'</span>)
 <span class="co">#Print the table</span>
-<span class="kw">kable</span>(aic.table, <span class="dt">digits=</span><span class="dv">5</span>)</code></pre></div>
+<span class="kw">kable</span>(aic.table)</code></pre></div>
 <table>
 <thead>
 <tr class="header">
 <th align="left">Model Name</th>
+<th align="left">Catchability Covariate</th>
 <th align="right">AIC</th>
 <th align="right">dAIC</th>
 </tr>
@@ -1092,21 +1056,25 @@ aic.table &lt;-<span class="st"> </span><span class="kw">data.frame</span>(aic.t
 <tbody>
 <tr class="odd">
 <td align="left">Null Model</td>
-<td align="right">66056</td>
-<td align="right">178</td>
+<td align="left">None</td>
+<td align="right">66056.0</td>
+<td align="right">178.225</td>
 </tr>
 <tr class="even">
 <td align="left">Model 1</td>
-<td align="right">66059</td>
-<td align="right">181</td>
+<td align="left">Tow Duration</td>
+<td align="right">66059.0</td>
+<td align="right">181.229</td>
 </tr>
 <tr class="odd">
 <td align="left">Model 2</td>
-<td align="right">65878</td>
-<td align="right">0</td>
+<td align="left">Gear Temperature</td>
+<td align="right">65877.7</td>
+<td align="right">0.000</td>
 </tr>
 </tbody>
 </table>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># pander::pandoc.table(aic.table)</span></code></pre></div>
 <hr />
 
 </div>
@@ -1124,6 +1092,244 @@ aic.table &lt;-<span class="st"> </span><span class="kw">data.frame</span>(aic.t
 <li>This may be specified with <code>ObsModel = c(1,1)</code>.</li>
 </ul>
 <hr />
+
+</div>
+<div id="specifying-catchability-covariates-for-positive-catch-rate-only" class="section level1">
+<h1><span class="header-section-number">7</span> Specifying <strong>catchability</strong> covariates for positive catch rate <strong>only</strong></h1>
+<p>Given you assumptions about the sampling process, it may make more sense to estimate the effect of the <strong>catchability</strong> covariates on the <strong>positive catch rate</strong> component of the delta-model only. To do so, we must:</p>
+<ul>
+<li>Modify the <code>Tmb_List_...</code> object by…</li>
+<li>Extracting the <code>$Map</code> object, as: <code>Map = TmbList$Map</code></li>
+<li>Modifying <code>Map</code> to turn off estimation of <code>lambda1_k</code>, as: <code>Map[[&quot;lambda1_k&quot;]] = rep(NA, length(TmbList$Parameters$lambda1_k))</code></li>
+<li>Recompile the <code>TmbList_...</code> with <code>VAST::BuildTMB_Fn()</code></li>
+</ul>
+<p>As an example we will update, recompile, and re-fit <strong>Model 1</strong> and <strong>Model 2</strong>, so that the effect of <strong>tow duration</strong> and <strong>gear temperature</strong> is only linked to encounter probability. We will refer to these as <strong>Model 1b</strong> and <strong>Model 2b</strong>.</p>
+<div id="model-1b-tow-duration-effect-on-encounter-probability-only" class="section level2">
+<h2><span class="header-section-number">7.1</span> <strong>Model 1b:</strong> tow duration effect on encounter probability <strong>only</strong></h2>
+<p>First, lets take the existing <code>TmbList_Mod1</code> from <strong>Model 1</strong> and extract <code>$Map</code></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Map_1b =<span class="st"> </span>TmbList_Mod1$Map</code></pre></div>
+<p>Next, lets turn off estimation of <code>lambda2_k</code>, lambda_k being the effect of <strong>catchability</strong> covariates, and <strong>2</strong> indicating this is for the <em>positive catch rate</em> component of the delta-model.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Map_1b[[<span class="st">&quot;lambda1_k&quot;</span>]] =<span class="st"> </span><span class="kw">factor</span>(<span class="kw">rep</span>(<span class="ot">NA</span>, <span class="kw">length</span>(TmbList_Mod1$Parameters$lambda1_k)))</code></pre></div>
+<p>Finally, lets recompile the model.</p>
+<ul>
+<li>Note: We</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#New file</span>
+DateFile_Mod1b =<span class="st"> </span><span class="kw">paste0</span>(DateFile,<span class="st">&quot;/Model 1b/&quot;</span>)
+<span class="kw">dir.create</span>(DateFile_Mod1b)
+
+<span class="co">#Recompile</span>
+TmbList_Mod1b =<span class="st"> </span>VAST::<span class="kw">Build_TMB_Fn</span>(<span class="dt">TmbData =</span> TmbData_Mod1, <span class="dt">RunDir =</span> DateFile_Mod1b,
+                                <span class="dt">Version =</span> Version, <span class="dt">RhoConfig =</span> RhoConfig, 
+                                <span class="dt">loc_x =</span> Spatial_List$loc_x,
+                                <span class="dt">Method =</span> Method, <span class="dt">Q_Config=</span><span class="ot">TRUE</span>, <span class="dt">CovConfig=</span><span class="ot">FALSE</span>, <span class="dt">Map=</span>Map_1b)</code></pre></div>
+<pre><code>## Note: Using Makevars in /Users/curryc2/.R/Makevars</code></pre>
+<pre><code>## List of estimated fixed and random effects:</code></pre>
+<pre><code>##     Coefficient_name Number_of_coefficients
+## 1           beta1_ct                     15
+## 2           beta2_ct                     15
+## 3       L_epsilon1_z                      1
+## 4       L_epsilon2_z                      1
+## 5         L_omega1_z                      1
+## 6         L_omega2_z                      1
+## 7          lambda2_k                      1
+## 8         ln_H_input                      2
+## 9          logkappa1                      1
+## 10         logkappa2                      1
+## 11         logSigmaM                      1
+## 12 Epsiloninput1_sft                   3944
+## 13 Epsiloninput2_sft                   3944
+## 14    Omegainput1_sf                    116
+## 15    Omegainput2_sf                    116
+##      Type
+## 1   Fixed
+## 2   Fixed
+## 3   Fixed
+## 4   Fixed
+## 5   Fixed
+## 6   Fixed
+## 7   Fixed
+## 8   Fixed
+## 9   Fixed
+## 10  Fixed
+## 11  Fixed
+## 12 Random
+## 13 Random
+## 14 Random
+## 15 Random</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Obj_Mod1b =<span class="st"> </span>TmbList_Mod1b$Obj</code></pre></div>
+<p>Fit VAST model to the data by optimizing the TMB function.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Opt_Mod1b =<span class="st"> </span>TMBhelper::<span class="kw">Optimize</span>(<span class="dt">obj =</span> Obj_Mod1b, <span class="dt">lower =</span> TmbList_Mod1b[[<span class="st">&quot;Lower&quot;</span>]],
+                          <span class="dt">upper =</span> TmbList_Mod1b[[<span class="st">&quot;Upper&quot;</span>]], <span class="dt">getsd =</span> <span class="ot">TRUE</span>, 
+                          <span class="dt">savedir =</span> DateFile_Mod1b,
+                          <span class="dt">bias.correct =</span> bias.correct, <span class="dt">newtonsteps=</span><span class="dv">2</span>)</code></pre></div>
+<p>Save outputs from estimation</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Report_Mod1b =<span class="st"> </span>Obj_Mod1b$<span class="kw">report</span>()
+
+Save_Mod1b =<span class="st"> </span><span class="kw">list</span>(<span class="st">&quot;Opt&quot;</span>=Opt_Mod1b, <span class="st">&quot;Report&quot;</span>=Report_Mod1b, 
+                 <span class="st">&quot;ParHat&quot;</span>=Obj_Mod1b$env$<span class="kw">parList</span>(Opt_Mod1b$par), 
+                 <span class="st">&quot;TmbData&quot;</span>=TmbData_Mod1)
+
+<span class="kw">save</span>(Save_Mod1b, <span class="dt">file=</span><span class="kw">paste0</span>(DateFile_Mod1b,<span class="st">&quot;Save.RData&quot;</span>))</code></pre></div>
+</div>
+<div id="model-2b-tow-duration-effect-on-encounter-probability-only" class="section level2">
+<h2><span class="header-section-number">7.2</span> <strong>Model 2b:</strong> tow duration effect on encounter probability <strong>only</strong></h2>
+<p>First, lets take the existing <code>TmbList_Mod2</code> from <strong>Model 2</strong> and extract <code>$Map</code></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Map_2b =<span class="st"> </span>TmbList_Mod2$Map</code></pre></div>
+<p>Next, lets turn off estimation of <code>lambda2_k</code>, lambda_k being the effect of <strong>catchability</strong> covariates, and <strong>2</strong> indicating this is for the <em>positive catch rate</em> component of the delta-model.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Map_2b[[<span class="st">&quot;lambda1_k&quot;</span>]] =<span class="st"> </span><span class="kw">factor</span>(<span class="kw">rep</span>(<span class="ot">NA</span>, <span class="kw">length</span>(TmbList_Mod2$Parameters$lambda1_k)))</code></pre></div>
+<p>Finally, lets recompile the model.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#New file</span>
+DateFile_Mod2b =<span class="st"> </span><span class="kw">paste0</span>(DateFile,<span class="st">&quot;/Model 2b/&quot;</span>)
+<span class="kw">dir.create</span>(DateFile_Mod2b)
+
+<span class="co">#Recompile</span>
+TmbList_Mod2b =<span class="st"> </span>VAST::<span class="kw">Build_TMB_Fn</span>(<span class="dt">TmbData =</span> TmbData_Mod2, <span class="dt">RunDir =</span> DateFile_Mod2b,
+                                <span class="dt">Version =</span> Version, <span class="dt">RhoConfig =</span> RhoConfig, 
+                                <span class="dt">loc_x =</span> Spatial_List$loc_x,
+                                <span class="dt">Method =</span> Method, <span class="dt">Q_Config=</span><span class="ot">TRUE</span>, <span class="dt">CovConfig=</span><span class="ot">FALSE</span>, <span class="dt">Map=</span>Map_2b)</code></pre></div>
+<pre><code>## Note: Using Makevars in /Users/curryc2/.R/Makevars</code></pre>
+<pre><code>## List of estimated fixed and random effects:</code></pre>
+<pre><code>##     Coefficient_name Number_of_coefficients
+## 1           beta1_ct                     15
+## 2           beta2_ct                     15
+## 3       L_epsilon1_z                      1
+## 4       L_epsilon2_z                      1
+## 5         L_omega1_z                      1
+## 6         L_omega2_z                      1
+## 7          lambda2_k                      1
+## 8         ln_H_input                      2
+## 9          logkappa1                      1
+## 10         logkappa2                      1
+## 11         logSigmaM                      1
+## 12 Epsiloninput1_sft                   3944
+## 13 Epsiloninput2_sft                   3944
+## 14    Omegainput1_sf                    116
+## 15    Omegainput2_sf                    116
+##      Type
+## 1   Fixed
+## 2   Fixed
+## 3   Fixed
+## 4   Fixed
+## 5   Fixed
+## 6   Fixed
+## 7   Fixed
+## 8   Fixed
+## 9   Fixed
+## 10  Fixed
+## 11  Fixed
+## 12 Random
+## 13 Random
+## 14 Random
+## 15 Random</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Obj_Mod2b =<span class="st"> </span>TmbList_Mod2b$Obj</code></pre></div>
+<p>Fit VAST model to the data by optimizing the TMB function.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Opt_Mod2b =<span class="st"> </span>TMBhelper::<span class="kw">Optimize</span>(<span class="dt">obj =</span> Obj_Mod2b, <span class="dt">lower =</span> TmbList_Mod2b[[<span class="st">&quot;Lower&quot;</span>]],
+                          <span class="dt">upper =</span> TmbList_Mod2b[[<span class="st">&quot;Upper&quot;</span>]], <span class="dt">getsd =</span> <span class="ot">TRUE</span>, 
+                          <span class="dt">savedir =</span> DateFile_Mod2b,
+                          <span class="dt">bias.correct =</span> bias.correct, <span class="dt">newtonsteps=</span><span class="dv">2</span>)</code></pre></div>
+<p>Save outputs from estimation</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Report_Mod2b =<span class="st"> </span>Obj_Mod2b$<span class="kw">report</span>()
+
+Save_Mod2b =<span class="st"> </span><span class="kw">list</span>(<span class="st">&quot;Opt&quot;</span>=Opt_Mod2b, <span class="st">&quot;Report&quot;</span>=Report_Mod2b, 
+                 <span class="st">&quot;ParHat&quot;</span>=Obj_Mod2b$env$<span class="kw">parList</span>(Opt_Mod2b$par), 
+                 <span class="st">&quot;TmbData&quot;</span>=TmbData_Mod2)
+
+<span class="kw">save</span>(Save_Mod2b, <span class="dt">file=</span><span class="kw">paste0</span>(DateFile_Mod2b,<span class="st">&quot;Save.RData&quot;</span>))</code></pre></div>
+</div>
+<div id="convergence-of-five-models" class="section level2">
+<h2><span class="header-section-number">7.3</span> Convergence of five models</h2>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">temp.table =<span class="st"> </span><span class="ot">NULL</span>
+temp.table$name =<span class="st"> </span><span class="kw">c</span>(<span class="st">'Null Model'</span>, <span class="st">'Model 1'</span>, <span class="st">'Model 2'</span>, <span class="st">'Model 1b'</span>, <span class="st">'Model 2b'</span>)
+temp.table$effect =<span class="st"> </span><span class="kw">c</span>(<span class="st">'None'</span>,<span class="st">'Tow Duration'</span>, <span class="st">'Gear Temperature'</span>, <span class="st">'Tow Duration (PCR-only)'</span>, <span class="st">'Gear Temperature (PCR-only)'</span>)
+temp.table$convergence =<span class="st"> </span><span class="kw">c</span>(Opt_null$convergence, 
+                           Opt_Mod1$convergence, 
+                           Opt_Mod2$convergence,
+                           Opt_Mod1b$convergence,
+                           Opt_Mod2b$convergence)
+temp.table$max_gradient =<span class="st"> </span><span class="kw">c</span>(Opt_null$max_gradient, 
+                            Opt_Mod1$max_gradient, 
+                            Opt_Mod2$max_gradient,
+                            Opt_Mod1b$max_gradient,
+                            Opt_Mod2b$max_gradient)
+temp.table =<span class="st"> </span><span class="kw">data.frame</span>(temp.table)
+<span class="kw">names</span>(temp.table) =<span class="st"> </span><span class="kw">c</span>(<span class="st">'Model Name'</span>,<span class="st">'Catchability Covariate'</span>,<span class="st">'Convergence'</span>,<span class="st">'Maximum Gradient'</span>)
+<span class="co">#Print the table</span>
+<span class="co"># kable(temp.table)</span>
+pander::<span class="kw">pandoc.table</span>(temp.table)</code></pre></div>
+<pre><code>## 
+## ---------------------------------------------------------------------------
+##  Model Name     Catchability Covariate      Convergence   Maximum Gradient 
+## ------------ ----------------------------- ------------- ------------------
+##  Null Model              None                    0           6.815e-12     
+## 
+##   Model 1            Tow Duration                1            1.17e-07     
+## 
+##   Model 2          Gear Temperature              1           2.302e-07     
+## 
+##   Model 1b      Tow Duration (PCR-only)          0           1.304e-11     
+## 
+##   Model 2b    Gear Temperature (PCR-only)        1           2.041e-11     
+## ---------------------------------------------------------------------------</code></pre>
+</div>
+<div id="compare-aic-for-five-models" class="section level2">
+<h2><span class="header-section-number">7.4</span> Compare AIC for five models</h2>
+<p>Lets compare AIC across models…</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">aic.table &lt;-<span class="st"> </span><span class="ot">NULL</span>
+aic.table$name =<span class="st"> </span><span class="kw">c</span>(<span class="st">'Null Model'</span>, <span class="st">'Model 1'</span>, <span class="st">'Model 2'</span>, <span class="st">'Model 1b'</span>, <span class="st">'Model 2b'</span>)
+aic.table$effect =<span class="st"> </span><span class="kw">c</span>(<span class="st">'None'</span>,<span class="st">'Tow Duration'</span>, <span class="st">'Gear Temperature'</span>, <span class="st">'Tow Duration (PCR-only)'</span>, <span class="st">'Gear Temperature (PCR-only)'</span>)
+aic.table$AIC =<span class="st"> </span><span class="kw">c</span>(Opt_null$AIC, Opt_Mod1$AIC, Opt_Mod2$AIC, Opt_Mod1b$AIC, Opt_Mod2b$AIC)
+<span class="co">#Calculate dAIC</span>
+aic.table$dAIC &lt;-<span class="st"> </span>aic.table$AIC -<span class="st"> </span><span class="kw">min</span>(aic.table$AIC)
+<span class="co">#Data frame</span>
+aic.table &lt;-<span class="st"> </span><span class="kw">data.frame</span>(aic.table)
+<span class="kw">names</span>(aic.table) &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">'Model Name'</span>, <span class="st">'Catchability Covariate'</span>, <span class="st">'AIC'</span>, <span class="st">'dAIC'</span>)
+<span class="co">#Print the table</span>
+<span class="kw">kable</span>(aic.table)</code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Model Name</th>
+<th align="left">Catchability Covariate</th>
+<th align="right">AIC</th>
+<th align="right">dAIC</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Null Model</td>
+<td align="left">None</td>
+<td align="right">66056.0</td>
+<td align="right">178.225</td>
+</tr>
+<tr class="even">
+<td align="left">Model 1</td>
+<td align="left">Tow Duration</td>
+<td align="right">66059.0</td>
+<td align="right">181.229</td>
+</tr>
+<tr class="odd">
+<td align="left">Model 2</td>
+<td align="left">Gear Temperature</td>
+<td align="right">65877.7</td>
+<td align="right">0.000</td>
+</tr>
+<tr class="even">
+<td align="left">Model 1b</td>
+<td align="left">Tow Duration (PCR-only)</td>
+<td align="right">66057.6</td>
+<td align="right">179.841</td>
+</tr>
+<tr class="odd">
+<td align="left">Model 2b</td>
+<td align="left">Gear Temperature (PCR-only)</td>
+<td align="right">65990.9</td>
+<td align="right">113.125</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># pander::pandoc.table(aic.table)</span></code></pre></div>
+</div>
 </div>
 
 
