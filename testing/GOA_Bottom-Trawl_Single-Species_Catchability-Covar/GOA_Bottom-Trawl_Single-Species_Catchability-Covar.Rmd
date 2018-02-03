@@ -5,10 +5,6 @@ title: |-
 author: "Dr. Curry J. Cunningham"
 date: "January 23, 2018"
 output:
-  pdf_document:
-    fig_caption: yes
-    number_sections: yes
-    toc: yes
   html_document:
     fig_caption: yes
     highlight: espresso
@@ -16,6 +12,10 @@ output:
     theme: cerulean
     toc: yes
     toc_depth: 2
+  pdf_document:
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
 ---
 
 \newpage
@@ -88,6 +88,7 @@ Specifics of this Example:
 devtools::install_github("nwfsc-assess/geostatistical_delta-GLMM") 
 devtools::install_github("james-thorson/VAST") 
 devtools::install_github("james-thorson/utilities")
+install.packages("dplyr", repos="http://cran.us.r-project.org")
 ```
 
 ##Load required packages
@@ -363,6 +364,14 @@ Given we want to compare models fit to the same data, lets remove these tows wit
 
 ```{r}
 Data_Geostat = Data_Geostat[!is.na(Data_Geostat$Gear_Temperature),]
+```
+
+###Standardize the covariate data
+
+```{r}
+Data_Geostat$Duration <- Data_Geostat$Duration - mean(Data_Geostat$Duration)
+
+Data_Geostat$Gear_Temperature <- Data_Geostat$Gear_Temperature - mean(Data_Geostat$Gear_Temperature)
 ```
 
 ##Create the extrapolation grid
@@ -721,7 +730,7 @@ Here are some general conclusions regarding GOA Pacific Cod:
 
 #Specifying **catchability** covariates for positive catch rate **only**
 
-Given you assumptions about the sampling process, it may make more sense to estimate the effect of the **catchability** covariates on the **positive catch rate** component of the delta-model only. 
+Given your assumptions about the sampling process, it may make more sense to estimate the effect of the **catchability** covariates on the **positive catch rate** component of the delta-model only. 
 To do so, we must:
 
 * Modify the `Tmb_List_...` object by...
@@ -729,10 +738,10 @@ To do so, we must:
   + Modifying `Map` to turn off estimation of `lambda1_k`, as: `Map[["lambda1_k"]] = rep(NA, length(TmbList$Parameters$lambda1_k))`
 * Recompile the `TmbList_...` with `VAST::BuildTMB_Fn()`
 
-As an example we will update, recompile, and re-fit **Model 1** and **Model 2**, so that the effect of **tow duration** and **gear temperature** is only linked to encounter probability.
+As an example we will update, recompile, and re-fit **Model 1** and **Model 2**, so that the effect of **tow duration** and **gear temperature** is only linked to **positive catch rate**.
 We will refer to these as **Model 1b** and **Model 2b**.
 
-##**Model 1b:** tow duration effect on encounter probability **only**
+##**Model 1b:** tow duration effect on positive catch rate **only**
 
 First, lets take the existing `TmbList_Mod1` from **Model 1** and extract `$Map`
 
@@ -740,15 +749,13 @@ First, lets take the existing `TmbList_Mod1` from **Model 1** and extract `$Map`
 Map_1b = TmbList_Mod1$Map
 ```
 
-Next, lets turn off estimation of `lambda2_k`, lambda_k being the effect of **catchability** covariates, and **2** indicating this is for the *positive catch rate* component of the delta-model.
+Next, lets turn **off** estimation of `lambda1_k`, lambda_k being the effect of **catchability** covariates, and **1** indicating this is for the **encounter probability** component of the delta-model.
 
 ```{r}
 Map_1b[["lambda1_k"]] = factor(rep(NA, length(TmbList_Mod1$Parameters$lambda1_k)))
 ```
 
 Finally, lets recompile the model.
-
-* Note: We
 
 ```{r}
 #New file
@@ -784,7 +791,7 @@ Save_Mod1b = list("Opt"=Opt_Mod1b, "Report"=Report_Mod1b,
 save(Save_Mod1b, file=paste0(DateFile_Mod1b,"Save.RData"))
 ```
 
-##**Model 2b:** tow duration effect on encounter probability **only**
+##**Model 2b:** gear temperature effect on positive catch rate **only**
 
 First, lets take the existing `TmbList_Mod2` from **Model 2** and extract `$Map`
 
@@ -792,7 +799,7 @@ First, lets take the existing `TmbList_Mod2` from **Model 2** and extract `$Map`
 Map_2b = TmbList_Mod2$Map
 ```
 
-Next, lets turn off estimation of `lambda2_k`, lambda_k being the effect of **catchability** covariates, and **2** indicating this is for the *positive catch rate* component of the delta-model.
+Next, lets turn **off** estimation of `lambda1_k`, lambda_k being the effect of **catchability** covariates, and **1** indicating this is for the **encounter probability** component of the delta-model.
 
 ```{r}
 Map_2b[["lambda1_k"]] = factor(rep(NA, length(TmbList_Mod2$Parameters$lambda1_k)))
