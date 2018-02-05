@@ -88,6 +88,7 @@ Specifics of this Example:
 devtools::install_github("nwfsc-assess/geostatistical_delta-GLMM") 
 devtools::install_github("james-thorson/VAST") 
 devtools::install_github("james-thorson/utilities")
+devtools::install_github("james-thorson/FishData")
 install.packages("dplyr", repos="http://cran.us.r-project.org")
 ```
 
