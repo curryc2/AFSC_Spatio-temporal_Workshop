@@ -43,5 +43,7 @@ vignettes/*.pdf
 
 #Testing folder
 testing/
+/testing/
 
 zipped examples/
+/zipped examples/
